@@ -412,12 +412,13 @@ class UCPClient:
         req_str = str(sorted(requirements.items()))
         seed = int(hashlib.sha256(req_str.encode()).hexdigest()[:8], 16)
 
-        # Generate pseudo-random but deterministic vector
+        # Generate pseudo-random but deterministic vector using local instance
+        # (avoids setting global random state, which is not thread-safe)
         import random
-        random.seed(seed)
+        rng = random.Random(seed)
 
         # Generate normalized vector
-        vector = [random.gauss(0, 1) for _ in range(dimension)]
+        vector = [rng.gauss(0, 1) for _ in range(dimension)]
         norm = math.sqrt(sum(v * v for v in vector))
         if norm > 0:
             vector = [v / norm for v in vector]
