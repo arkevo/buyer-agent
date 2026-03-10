@@ -8,6 +8,7 @@ from .a2a_client import A2AClient, A2AResponse, A2AError
 from .mcp_client import IABMCPClient, MCPToolResult, MCPClientError
 from .unified_client import UnifiedClient, UnifiedResult, Protocol
 from .ucp_client import UCPClient, UCPExchangeResult
+from .deals_client import DealsClient, DealsClientError
 
 
 __all__ = [
@@ -28,4 +29,7 @@ __all__ = [
     # UCP client for audience exchange
     "UCPClient",
     "UCPExchangeResult",
+    # IAB Deals API v1.0 client (quote-then-book flow)
+    "DealsClient",
+    "DealsClientError",
 ]

@@ -36,6 +36,21 @@ from .ucp import (
     UCPEmbedding,
     UCPModelDescriptor,
 )
+from .deals import (
+    AvailabilityInfo,
+    BuyerIdentityPayload,
+    DealBookingRequest,
+    OpenRTBParams,
+    PricingInfo,
+    ProductInfo,
+    QuoteRequest,
+    QuoteResponse,
+    SellerErrorResponse,
+    TermsInfo,
+)
+# Avoid shadowing buyer_identity.DealResponse with deals.DealResponse
+# by importing the deals version under a distinct name
+from .deals import DealResponse as SellerDealResponse
 
 __all__ = [
     # OpenDirect models
@@ -69,4 +84,16 @@ __all__ = [
     "UCPContextDescriptor",
     "UCPEmbedding",
     "UCPModelDescriptor",
+    # Deals API v1.0 models (quote-then-book)
+    "AvailabilityInfo",
+    "BuyerIdentityPayload",
+    "DealBookingRequest",
+    "OpenRTBParams",
+    "PricingInfo",
+    "ProductInfo",
+    "QuoteRequest",
+    "QuoteResponse",
+    "SellerDealResponse",
+    "SellerErrorResponse",
+    "TermsInfo",
 ]
