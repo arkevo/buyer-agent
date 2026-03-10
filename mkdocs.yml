@@ -73,6 +73,7 @@ nav:
       - Models: architecture/models.md
   - Guides:
       - Negotiation: guides/negotiation.md
+      - Media Kit Browsing: guides/media-kit.md
       - Identity Strategy: guides/identity.md
   - Integration:
       - Seller Agent Guide: integration/seller-agent.md
