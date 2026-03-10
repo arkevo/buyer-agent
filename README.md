@@ -137,7 +137,15 @@ cp .env.example .env
 Key settings:
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-api03-xxxxx        # Required
+# LLM — set the API key for your chosen provider
+ANTHROPIC_API_KEY=sk-ant-api03-xxxxx        # For Anthropic (default)
+# OPENAI_API_KEY=sk-xxxxx                   # For OpenAI / Azure
+# COHERE_API_KEY=xxxxx                      # For Cohere
+
+# LLM model (uses litellm provider/model format — any provider works)
+DEFAULT_LLM_MODEL=anthropic/claude-sonnet-4-5-20250929
+# DEFAULT_LLM_MODEL=openai/gpt-4o          # OpenAI example
+# DEFAULT_LLM_MODEL=ollama/llama3           # Local Ollama example
 
 # Seller connection
 SELLER_BASE_URL=http://localhost:8001        # Seller agent URL
@@ -145,6 +153,8 @@ SELLER_BASE_URL=http://localhost:8001        # Seller agent URL
 # Storage
 DATABASE_URL=sqlite:///./ad_buyer.db
 ```
+
+> **LLM Provider Flexibility:** The agent uses [litellm](https://docs.litellm.ai/) under the hood, supporting 100+ LLM providers (OpenAI, Azure, Cohere, Ollama, Vertex AI, Bedrock, etc.). Set `DEFAULT_LLM_MODEL` and `MANAGER_LLM_MODEL` using `provider/model-name` format and provide the matching API key. See the [Quickstart Guide](https://iabtechlab.github.io/buyer-agent/getting-started/quickstart/) for details.
 
 → [Full Configuration](https://iabtechlab.github.io/buyer-agent/getting-started/quickstart/)
 
