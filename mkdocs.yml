@@ -70,6 +70,7 @@ nav:
   - Architecture:
       - Overview: architecture/overview.md
       - Booking Flow: architecture/booking-flow.md
+      - Deal Store: architecture/deal-store.md
       - Models: architecture/models.md
   - Guides:
       - Negotiation: guides/negotiation.md
