@@ -6,18 +6,20 @@ Part of the IAB Tech Lab Agent Ecosystem --- see also the [Seller Agent](https:/
 
 ## Key Capabilities
 
-- **Campaign briefing** --- accept structured campaign briefs with objectives, budget, dates, audience, and KPIs.
-- **Budget allocation** --- a portfolio-manager agent splits budget across channels (branding, CTV, mobile, performance).
-- **Inventory research** --- channel-specialist agents query seller product catalogs via MCP and A2A protocols.
-- **Recommendation consolidation** --- recommendations from all channels are ranked and presented for review.
-- **Human approval** --- optional approval checkpoint before committing spend.
-- **Deal booking** --- approved recommendations are booked via the quote-then-book deal flow (IAB Deals API v1.0).
-- **Multi-turn negotiation** --- pluggable negotiation strategies (anchor, split-the-difference, walk-away) over A2A conversations.
-- **Multi-seller discovery** --- discover and compare sellers via AAMP registry with trust verification and capability filtering.
-- **Tiered identity strategy** --- four pricing tiers (seat, agency, advertiser, anonymous) determine rate cards and discounts.
-- **Persistent session management** --- sessions track conversation state, negotiation history, and deal context across interactions.
-- **Linear TV buying** --- scatter and upfront buying with DMA-level targeting, CPP/CPM pricing, and daypart selection.
-- **Media kit browsing** --- progressive disclosure of seller inventory from summary through full product details and pricing.
+- Structured campaign briefing with objectives, budget, dates, audience, and KPIs
+- Portfolio-manager agent splits budget across 4 channels (branding, CTV, mobile, performance)
+- Multi-seller discovery via AAMP registry with trust verification and capability filtering
+- Channel-specialist agents research seller catalogs via MCP and A2A protocols
+- Progressive media-kit browsing from summary through full product details and pricing
+- Tiered identity strategy with 4 access tiers (public, seat, agency, advertiser) and progressive rate discounts
+- Multi-turn negotiation with pluggable strategies (threshold, adaptive, competitive) over A2A conversations
+- Quote-then-book deal flow via IAB Deals API v1.0 with DealStore persistence
+- Formal order state machine with 12 deal states, guard conditions, and audit trail
+- Event bus with 13 event types, fail-open emission, subscriber dispatch, and SQLite persistence
+- Human-in-the-loop approval gate before committing spend
+- Persistent session management tracking conversation state, negotiation history, and deal context
+- Linear TV scatter buying with DMA-level targeting, CPP/CPM pricing, and daypart selection
+- Severity-based change request management for post-deal modifications
 
 ## Access Methods
 
