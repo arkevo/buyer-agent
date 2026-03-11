@@ -73,7 +73,7 @@ def get_sort_key(title):
 CROSS_REPO_BLOCKERS = {
     "buyer-4bg": ["seller-dcd"],   # Needs Brian's FreeWheel seller support
     "buyer-kyo": ["seller-awh"],   # Needs Brian's order lifecycle seller support
-    "buyer-6io": ["ar-v2f"],       # Needs research: does quote-then-book work for linear TV?
+    # buyer-6io: ar-v2f — RESOLVED 2026-03-11 (decisions recorded in LINEAR_TV_DEAL_FLOW_RESEARCH.md Section 10)
     # buyer-hu7: seller-a3k — RESOLVED 2026-03-10
 }
 
