@@ -573,6 +573,121 @@ class DealStore:
         return results
 
     # ------------------------------------------------------------------
+    # Events
+    # ------------------------------------------------------------------
+
+    def save_event(
+        self,
+        *,
+        event_id: Optional[str] = None,
+        event_type: str,
+        flow_id: str = "",
+        flow_type: str = "",
+        deal_id: str = "",
+        session_id: str = "",
+        payload: Optional[str] = None,
+        metadata: Optional[str] = None,
+    ) -> str:
+        """Persist an event to the events table.
+
+        Args:
+            event_id: Optional UUID. Generated if not provided.
+            event_type: Event type string (e.g. "deal.booked").
+            flow_id: Flow that produced this event.
+            flow_type: Type of flow (e.g. "deal_booking").
+            deal_id: Associated deal ID.
+            session_id: Associated session ID.
+            payload: JSON-serialized payload.
+            metadata: JSON-serialized metadata.
+
+        Returns:
+            The event ID (generated or provided).
+        """
+        if event_id is None:
+            event_id = str(uuid.uuid4())
+
+        with self._lock:
+            self._conn.execute(
+                """INSERT INTO events
+                   (id, event_type, flow_id, flow_type, deal_id,
+                    session_id, payload, metadata)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    event_id,
+                    event_type,
+                    flow_id,
+                    flow_type,
+                    deal_id,
+                    session_id,
+                    payload or "{}",
+                    metadata or "{}",
+                ),
+            )
+            self._conn.commit()
+
+        return event_id
+
+    def get_event(self, event_id: str) -> Optional[dict[str, Any]]:
+        """Retrieve an event by ID.
+
+        Args:
+            event_id: The event's primary key.
+
+        Returns:
+            Event as a dict, or None if not found.
+        """
+        with self._lock:
+            cursor = self._conn.execute(
+                "SELECT * FROM events WHERE id = ?", (event_id,)
+            )
+            row = cursor.fetchone()
+        return dict(row) if row else None
+
+    def list_events(
+        self,
+        *,
+        event_type: Optional[str] = None,
+        flow_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        """List events with optional filters.
+
+        Args:
+            event_type: Filter by event type.
+            flow_id: Filter by flow ID.
+            session_id: Filter by session ID.
+            limit: Maximum rows to return.
+
+        Returns:
+            List of event dicts ordered by created_at descending.
+        """
+        clauses: list[str] = []
+        params: list[Any] = []
+
+        if event_type is not None:
+            clauses.append("event_type = ?")
+            params.append(event_type)
+        if flow_id is not None:
+            clauses.append("flow_id = ?")
+            params.append(flow_id)
+        if session_id is not None:
+            clauses.append("session_id = ?")
+            params.append(session_id)
+
+        where = ""
+        if clauses:
+            where = "WHERE " + " AND ".join(clauses)
+
+        query = f"SELECT * FROM events {where} ORDER BY created_at DESC LIMIT ?"
+        params.append(limit)
+
+        with self._lock:
+            cursor = self._conn.execute(query, params)
+            rows = cursor.fetchall()
+        return [dict(r) for r in rows]
+
+    # ------------------------------------------------------------------
     # Status Transitions
     # ------------------------------------------------------------------
 

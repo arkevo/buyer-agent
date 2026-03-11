@@ -3,12 +3,13 @@
 
 """Database schema definitions and migration runner for deal state persistence.
 
-Defines 5 relational tables for the deal lifecycle:
+Defines 6 relational tables for the deal lifecycle:
 - deals: Central deal tracking
 - negotiation_rounds: Per-round audit trail
 - booking_records: Booked line items
 - jobs: API-initiated booking jobs (replaces in-memory dict)
 - status_transitions: Append-only audit log
+- events: Event bus event persistence
 
 Uses a schema_version table for forward-compatible migrations.
 """
@@ -125,6 +126,28 @@ JOBS_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_jobs_created_at ON jobs(created_at);",
 ]
 
+EVENTS_TABLE = """
+CREATE TABLE IF NOT EXISTS events (
+    id              TEXT PRIMARY KEY,
+    event_type      TEXT NOT NULL,
+    flow_id         TEXT NOT NULL DEFAULT '',
+    flow_type       TEXT NOT NULL DEFAULT '',
+    deal_id         TEXT NOT NULL DEFAULT '',
+    session_id      TEXT NOT NULL DEFAULT '',
+    payload         TEXT DEFAULT '{}',
+    metadata        TEXT DEFAULT '{}',
+    created_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+"""
+
+EVENTS_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);",
+    "CREATE INDEX IF NOT EXISTS idx_events_flow_id ON events(flow_id);",
+    "CREATE INDEX IF NOT EXISTS idx_events_deal_id ON events(deal_id);",
+    "CREATE INDEX IF NOT EXISTS idx_events_session_id ON events(session_id);",
+    "CREATE INDEX IF NOT EXISTS idx_events_created_at ON events(created_at);",
+]
+
 STATUS_TRANSITIONS_TABLE = """
 CREATE TABLE IF NOT EXISTS status_transitions (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -161,6 +184,7 @@ def create_tables(conn: sqlite3.Connection) -> None:
         NEGOTIATION_ROUNDS_TABLE,
         BOOKING_RECORDS_TABLE,
         JOBS_TABLE,
+        EVENTS_TABLE,
         STATUS_TRANSITIONS_TABLE,
     ]:
         cursor.execute(ddl)
@@ -171,6 +195,7 @@ def create_tables(conn: sqlite3.Connection) -> None:
         NEGOTIATION_ROUNDS_INDEXES,
         BOOKING_RECORDS_INDEXES,
         JOBS_INDEXES,
+        EVENTS_INDEXES,
         STATUS_TRANSITIONS_INDEXES,
     ]:
         for idx in index_list:
