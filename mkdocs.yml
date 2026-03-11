@@ -70,16 +70,18 @@ nav:
       - Products: api/products.md
       - Sessions: api/sessions.md
   - Architecture:
-      - Agent Hierarchy: architecture/agent-hierarchy.md
       - Overview: architecture/overview.md
+      - Agent Hierarchy: architecture/agent-hierarchy.md
       - Booking Flow: architecture/booking-flow.md
       - DSP Deal Flow: architecture/dsp-deal-flow.md
       - Deal Store: architecture/deal-store.md
       - Models: architecture/models.md
       - Tools Reference: architecture/tools.md
-      - Order State Machine: architecture/state-machine.md
-      - Event Bus: architecture/event-bus.md
-  - Guides:
+  - State Machines:
+      - Order Lifecycle: architecture/state-machine.md
+  - Event Bus:
+      - Overview: architecture/event-bus.md
+  - Buyer Guide:
       - Configuration: guides/configuration.md
       - Deal Booking: guides/deal-booking.md
       - Negotiation: guides/negotiation.md
