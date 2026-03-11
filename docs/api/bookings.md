@@ -13,10 +13,13 @@ pending --> running --> awaiting_approval --> completed
 | Status | Meaning |
 |--------|---------|
 | `pending` | Job created, background flow starting |
-| `running` | Budget allocation and inventory research in progress |
+| `running` | Budget allocation, inventory research, and negotiation (if eligible) in progress |
 | `awaiting_approval` | Recommendations ready for human review |
 | `completed` | Deals booked (or no recommendations approved) |
 | `failed` | An error occurred during the flow |
+
+!!! info "Negotiation During the Running Phase"
+    During the `running` phase, the buyer agent may negotiate pricing with the seller for eligible buyer tiers (Agency and Advertiser). The `kpis.target_cpm` field in the campaign brief can drive negotiation behavior by setting the buyer's target price. See the [Negotiation Guide](../guides/negotiation.md) for details.
 
 ---
 

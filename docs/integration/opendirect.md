@@ -175,8 +175,12 @@ The `OpenDirectClient` (`clients/opendirect_client.py`) provides typed async met
 
 All methods return typed Pydantic models from `models/opendirect.py`.
 
+!!! note "Negotiation Is Not Part of OpenDirect"
+    Price negotiation happens via the A2A protocol and the `NegotiationClient`, not through OpenDirect endpoints. OpenDirect handles the booking lifecycle (orders, lines, reservation, confirmation) after pricing has been agreed upon. See the [Negotiation Guide](../guides/negotiation.md) for how negotiation integrates with the booking flow.
+
 ## References
 
 - [IAB OpenDirect 2.1 Specification](https://iabtechlab.com/standards/opendirect/)
 - [IAB Tech Lab](https://iabtechlab.com/)
 - [Seller Agent Documentation](https://iabtechlab.github.io/seller-agent/)
+- [Negotiation Guide](../guides/negotiation.md)

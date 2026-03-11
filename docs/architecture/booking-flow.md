@@ -50,6 +50,13 @@ sequenceDiagram
         Channels-->>Flow: Mobile recommendations
     end
 
+    opt Negotiation (eligible tiers)
+        Flow->>ODClient: NegotiationClient.start_negotiation()
+        ODClient->>Seller: POST /proposals/{id}/counter
+        Seller-->>ODClient: Counter-offer / accept
+        ODClient-->>Flow: Negotiated pricing
+    end
+
     Note over Flow: Step 4: Consolidate
     Flow->>Flow: consolidate_recommendations()
     Flow->>Flow: Set status: awaiting_approval
@@ -106,3 +113,6 @@ stateDiagram-v2
 ```
 
 These states are tracked in `BookingState.execution_status` using the `ExecutionStatus` enum.
+
+!!! note "Negotiation Between Research and Booking"
+    For Agency and Advertiser tier buyers, a negotiation phase can occur between the research and booking steps. The `NegotiationClient` handles multi-turn price negotiation with the seller agent before orders are placed. See the [Negotiation Guide](../guides/negotiation.md) for details on configuring negotiation strategies.

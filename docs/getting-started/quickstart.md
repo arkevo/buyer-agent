@@ -107,4 +107,5 @@ On a fresh server, this returns an empty list:
 - [**Running with Seller**](running-with-seller.md) — Connect to the seller agent and execute a full booking workflow end-to-end.
 - [**Configuration**](../guides/configuration.md) — Deep dive into all configuration options.
 - [**Deal Booking Guide**](../guides/deal-booking.md) — Understand the full booking lifecycle.
+- [**Negotiation Guide**](../guides/negotiation.md) — Configure automated price negotiation with seller agents.
 - [**API Reference**](../api/overview.md) — Explore every endpoint in detail.

@@ -261,7 +261,8 @@ graph LR
     B --> C[Verify Trust]
     C --> D[Fetch Agent Cards]
     D --> E[Browse Media Kits]
-    E --> F[Compare & Book]
+    E --> F[Negotiate Pricing]
+    F --> G[Compare & Book]
 ```
 
 ### Portfolio Shopping Example

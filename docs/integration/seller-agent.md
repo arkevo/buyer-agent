@@ -1,6 +1,6 @@
 # Seller Agent Integration
 
-The buyer agent connects to one or more seller agents to search inventory, check availability, and book deals using the IAB OpenDirect 2.1 protocol.
+The buyer agent connects to one or more seller agents to search inventory, check availability, negotiate pricing, and book deals using the IAB OpenDirect 2.1 protocol.
 
 ## Connection Configuration
 
@@ -66,6 +66,16 @@ Before recommending products, channel specialists check availability:
 
 - **Check avails**: `POST /products/avails` --- returns available impressions, estimated CPM, total cost, and delivery confidence
 
+### Negotiation
+
+For eligible buyer tiers (Agency and Advertiser), the buyer can negotiate pricing with the seller before booking:
+
+- **Start negotiation**: Via `NegotiationClient`, the buyer submits a counter-offer on a seller's proposal
+- **Multi-turn**: The buyer and seller exchange offers until agreement or walk-away
+- **Auto or manual**: Negotiations can run fully automatically using a pluggable `NegotiationStrategy`, or step-by-step
+
+See the [Negotiation Guide](../guides/negotiation.md) for configuration and strategy details.
+
 ### Order and Line Management
 
 After approval, the buyer creates orders and books line items:
@@ -97,6 +107,11 @@ sequenceDiagram
     Buyer->>Seller: POST /products/avails
     Seller-->>Buyer: Availability + pricing
 
+    opt Negotiation (Agency/Advertiser tiers)
+        Buyer->>Seller: POST /proposals/{id}/counter
+        Seller-->>Buyer: Counter-offer or accept
+    end
+
     Buyer->>Seller: POST /accounts/{id}/orders
     Seller-->>Buyer: Order created
 
@@ -115,3 +130,4 @@ sequenceDiagram
 - [Seller Agent Documentation](https://iabtechlab.github.io/seller-agent/)
 - [Seller Agent Buyer Integration Guide](https://iabtechlab.github.io/seller-agent/integration/buyer-agent/)
 - [OpenDirect Protocol](opendirect.md)
+- [Negotiation Guide](../guides/negotiation.md)
