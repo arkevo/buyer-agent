@@ -4,6 +4,9 @@ The Ad Buyer Agent is an automated advertising buying system built on [CrewAI](h
 
 Part of the IAB Tech Lab Agent Ecosystem --- see also the [Seller Agent](https://iabtechlab.github.io/seller-agent/).
 
+!!! note "Alpha Release"
+    The buyer agent is in active development. Core deal flow (brief, research, negotiate, book) is functional end-to-end. See [PROGRESS.md](https://github.com/IABTechLab/buyer-agent/blob/main/.beads/PROGRESS.md) for current roadmap status.
+
 ## Key Capabilities
 
 - Structured campaign briefing with objectives, budget, dates, audience, and KPIs
@@ -59,6 +62,8 @@ See the [API Overview](api/overview.md) for full details.
 - [Configuration](guides/configuration.md) --- environment variables, seller connections, and feature flags
 - [API Reference](api/overview.md) --- all endpoints, models, and curl examples
 - [Protocol Overview](api/protocols.md) --- comparison of MCP, A2A, and REST
+- [Order State Machine](architecture/state-machine.md) --- 12 deal states with guard conditions and audit trail
+- [Event Bus](architecture/event-bus.md) --- 13 event types with fail-open emission and persistence
 
 ### Guides
 
@@ -75,13 +80,4 @@ See the [API Overview](api/overview.md) for full details.
 - [MCP Client](api/mcp-client.md) --- structured tool calls to seller agents
 - [A2A Client](api/a2a-client.md) --- conversational discovery and negotiation
 - [Seller Agent Integration](integration/seller-agent.md) --- connecting to seller agents and the OpenDirect protocol
-
-### Planned Features
-
-- [Multi-Seller Orchestration](guides/multi-seller-orchestration.md) --- cross-seller campaign optimization
-- [Campaign Pipeline](guides/campaign-pipeline.md) --- end-to-end campaign lifecycle
-- [Budget Pacing](guides/budget-pacing.md) --- real-time spend management
-- [Creative Management](guides/creative-management.md) --- asset upload and assignment
-- [Order State Machine](architecture/state-machine.md) --- formal order status transitions
-- [Event Bus](architecture/event-bus.md) --- inter-agent event routing
 
