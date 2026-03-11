@@ -48,7 +48,7 @@ graph TB
 
 ---
 
-## Level 1 -- Portfolio Manager
+## Level 1 --- Portfolio Manager
 
 The Portfolio Manager is the top-level orchestrator. It receives a campaign brief and determines how to allocate budget across channels.
 
@@ -59,7 +59,7 @@ The Portfolio Manager is the top-level orchestrator. It receives a campaign brie
 | Role | Portfolio Manager |
 | LLM | `anthropic/claude-opus-4-20250514` (configurable via `MANAGER_LLM_MODEL`) |
 | Temperature | 0.3 |
-| Delegation | Enabled -- delegates to Level 2 agents |
+| Delegation | Enabled --- delegates to Level 2 agents |
 | Memory | Enabled |
 
 **Responsibilities:**
@@ -83,7 +83,7 @@ manager = create_portfolio_manager(
 
 ---
 
-## Level 2 -- Channel Specialists
+## Level 2 --- Channel Specialists
 
 Each Level 2 agent owns a specific advertising channel. They receive budget allocations from the Portfolio Manager and coordinate Level 3 agents to research inventory and execute bookings.
 
@@ -95,7 +95,7 @@ All channel specialists share these defaults:
 |-----------|-------|
 | LLM | `anthropic/claude-sonnet-4-5-20250929` (configurable via `DEFAULT_LLM_MODEL`) |
 | Temperature | 0.5 |
-| Delegation | Enabled -- delegates to Level 3 agents |
+| Delegation | Enabled --- delegates to Level 3 agents |
 | Memory | Enabled |
 
 ### Branding Specialist
@@ -174,9 +174,9 @@ Discovers inventory and obtains Deal IDs for activation in traditional DSP platf
 
 ---
 
-## Level 3 -- Functional Agents
+## Level 3 --- Functional Agents
 
-Level 3 agents are shared across channels. They do not make strategic decisions -- they execute specific functions on behalf of the Level 2 specialists.
+Level 3 agents are shared across channels. They do not make strategic decisions --- they execute specific functions on behalf of the Level 2 specialists.
 
 **Key directory:** `src/ad_buyer/agents/level3/`
 
@@ -185,7 +185,7 @@ All functional agents share these defaults:
 | Attribute | Value |
 |-----------|-------|
 | LLM | `anthropic/claude-sonnet-4-5-20250929` |
-| Delegation | Disabled -- they are leaf-level executors |
+| Delegation | Disabled --- they are leaf-level executors |
 | Memory | Enabled |
 
 ### Audience Planner (UCP)
@@ -254,7 +254,7 @@ Retrieves and analyzes campaign performance data.
 
 ## Crew Coordination
 
-Agents are organized into **crews** -- CrewAI constructs that define which agents work together, what tasks they perform, and how authority flows.
+Agents are organized into **crews** --- CrewAI constructs that define which agents work together, what tasks they perform, and how authority flows.
 
 ### Portfolio Crew
 
@@ -285,13 +285,13 @@ result = crew.kickoff()
 
 | Role | Agent | Process |
 |------|-------|---------|
-| Manager | Portfolio Manager (L1) | Hierarchical -- assigns tasks and reviews output |
+| Manager | Portfolio Manager (L1) | Hierarchical --- assigns tasks and reviews output |
 | Workers | Branding, CTV, Mobile, Performance (L2) | Receive budget allocation and channel guidance |
 
 **Tasks:**
 
-1. **Budget Allocation** -- Analyze the brief, determine optimal channel split
-2. **Channel Coordination** -- Provide targeting and quality guidance per channel
+1. **Budget Allocation** --- Analyze the brief, determine optimal channel split
+2. **Channel Coordination** --- Provide targeting and quality guidance per channel
 
 ### Channel Crews
 
@@ -331,8 +331,8 @@ Four channel crew factory functions are available:
 
 All channel crews follow the same two-task pattern:
 
-1. **Research Task** -- The Research Agent searches inventory matching the channel brief and audience plan, using both research and audience tools
-2. **Recommendation Task** -- The channel specialist reviews findings and selects the best inventory
+1. **Research Task** --- The Research Agent searches inventory matching the channel brief and audience plan, using both research and audience tools
+2. **Recommendation Task** --- The channel specialist reviews findings and selects the best inventory
 
 !!! info "Audience context"
     Channel crews accept an optional `audience_plan` parameter. When provided, the Research Agent incorporates UCP-compatible audience targeting into its inventory search. This plan typically comes from the Audience Planner agent.
@@ -368,8 +368,8 @@ sequenceDiagram
 
 ## Related
 
-- [Architecture Overview](overview.md) -- Full system architecture
-- [Tools Reference](tools.md) -- All CrewAI tools available to agents
-- [DSP Deal Flow](dsp-deal-flow.md) -- DSP-specific deal discovery workflow
-- [Booking Flow](booking-flow.md) -- Detailed booking sequence
-- [Configuration](../guides/configuration.md) -- LLM and agent settings
+- [Architecture Overview](overview.md) --- Full system architecture
+- [Tools Reference](tools.md) --- All CrewAI tools available to agents
+- [DSP Deal Flow](dsp-deal-flow.md) --- DSP-specific deal discovery workflow
+- [Booking Flow](booking-flow.md) --- Detailed booking sequence
+- [Configuration](../guides/configuration.md) --- LLM and agent settings

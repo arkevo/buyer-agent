@@ -270,6 +270,6 @@ CREW_MAX_ITERATIONS=5
 
 ## Related
 
-- [Agent Hierarchy](../architecture/agent-hierarchy.md) -- How LLM settings map to agent levels
-- [Architecture Overview](../architecture/overview.md) -- System component overview
-- [Authentication](../api/authentication.md) -- API key setup for inbound requests
+- [Agent Hierarchy](../architecture/agent-hierarchy.md) --- How LLM settings map to agent levels
+- [Architecture Overview](../architecture/overview.md) --- System component overview
+- [Authentication](../api/authentication.md) --- API key setup for inbound requests

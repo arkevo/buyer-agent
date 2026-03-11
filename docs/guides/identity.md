@@ -6,7 +6,7 @@ Identity is the buyer's most valuable negotiating asset. Every interaction with 
 
 Seller pricing is not one-size-fits-all. Sellers apply tiered discounts based on how much they know about the buyer:
 
-- **Anonymous buyers** see price ranges only -- no exact pricing, no negotiation.
+- **Anonymous buyers** see price ranges only --- no exact pricing, no negotiation.
 - **Known DSP seats** get fixed pricing with a modest discount.
 - **Agencies** unlock negotiation and deeper discounts.
 - **Advertisers** get the best rates, volume discounts, and full inventory access.
@@ -30,7 +30,7 @@ The buyer is anonymous. The seller returns price ranges (e.g., "$28--$42 CPM") b
 
 ### SEAT
 
-The buyer reveals its DSP seat identifier (e.g., `ttd-seat-123`). The seller returns exact pricing with a 5% discount. Negotiation is not available -- the buyer accepts posted prices. This is the minimum tier for transacting.
+The buyer reveals its DSP seat identifier (e.g., `ttd-seat-123`). The seller returns exact pricing with a 5% discount. Negotiation is not available --- the buyer accepts posted prices. This is the minimum tier for transacting.
 
 ### AGENCY
 
@@ -45,7 +45,7 @@ The buyer reveals full identity including the advertiser (name, ID, industry ver
 
 ## BuyerIdentityStrategy
 
-The `IdentityStrategy` class recommends which tier to present based on the deal context. It does not modify the buyer's stored identity -- instead, it creates masked copies that expose only the fields appropriate for the recommended tier.
+The `IdentityStrategy` class recommends which tier to present based on the deal context. It does not modify the buyer's stored identity --- instead, it creates masked copies that expose only the fields appropriate for the recommended tier.
 
 ### Decision Logic
 
@@ -72,10 +72,10 @@ flowchart TD
     M --> N
 ```
 
-1. **Deal type** -- Programmatic Guaranteed always requires ADVERTISER tier (guaranteed inventory needs full identity).
-2. **Deal value** -- Higher-value deals justify revealing more identity for larger absolute savings.
-3. **Seller relationship** -- Trusted or established sellers earn a one-tier upgrade (the buyer is comfortable sharing more).
-4. **Campaign goal** -- Performance campaigns benefit from higher tiers because sellers can apply better targeting with more buyer information.
+1. **Deal type** --- Programmatic Guaranteed always requires ADVERTISER tier (guaranteed inventory needs full identity).
+2. **Deal value** --- Higher-value deals justify revealing more identity for larger absolute savings.
+3. **Seller relationship** --- Trusted or established sellers earn a one-tier upgrade (the buyer is comfortable sharing more).
+4. **Campaign goal** --- Performance campaigns benefit from higher tiers because sellers can apply better targeting with more buyer information.
 
 ### Thresholds
 
@@ -353,7 +353,7 @@ sellers = store.list_sellers()
 
 ## Related
 
-- [Authentication](../api/authentication.md) -- API key setup for authenticating requests
-- [Media Kit Discovery](../api/media-kit.md) -- how tiers affect inventory access and pricing
-- [Negotiation Guide](negotiation.md) -- negotiation workflows and tier requirements
-- [Seller Pricing Rules](https://iabtechlab.github.io/seller-agent/guides/pricing-rules/) -- how sellers configure tier-based discounts
+- [Authentication](../api/authentication.md) --- API key setup for authenticating requests
+- [Media Kit Discovery](../api/media-kit.md) --- how tiers affect inventory access and pricing
+- [Negotiation Guide](negotiation.md) --- negotiation workflows and tier requirements
+- [Seller Pricing Rules](https://iabtechlab.github.io/seller-agent/guides/pricing-rules/) --- how sellers configure tier-based discounts

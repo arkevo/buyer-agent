@@ -1,6 +1,6 @@
 # Session Management
 
-Sessions enable multi-turn conversations with seller agents. Instead of treating each API call as a one-off request, a session maintains context across a sequence of messages -- the seller remembers what you've asked, what you've negotiated, and where you left off. This is essential for any workflow that spans more than a single request: browsing inventory, negotiating prices, and booking deals all benefit from conversational continuity.
+Sessions enable multi-turn conversations with seller agents. Instead of treating each API call as a one-off request, a session maintains context across a sequence of messages --- the seller remembers what you've asked, what you've negotiated, and where you left off. This is essential for any workflow that spans more than a single request: browsing inventory, negotiating prices, and booking deals all benefit from conversational continuity.
 
 ## Why Sessions Matter
 
@@ -8,9 +8,9 @@ Without sessions, every message to a seller starts from scratch. The seller has 
 
 Sessions solve three problems:
 
-1. **Context continuity** -- The seller tracks the full conversation history. When you counter-offer in round three of a negotiation, the seller knows what happened in rounds one and two.
-2. **Negotiation state** -- Price discussions, counter-offers, and concessions are tied to the session. Walking away and coming back later picks up where you left off (within the 7-day TTL).
-3. **Conversation history** -- Inquiries, quotes, and agreements are all linked. The seller can reference a quote it gave earlier in the session when confirming a deal.
+1. **Context continuity** --- The seller tracks the full conversation history. When you counter-offer in round three of a negotiation, the seller knows what happened in rounds one and two.
+2. **Negotiation state** --- Price discussions, counter-offers, and concessions are tied to the session. Walking away and coming back later picks up where you left off (within the 7-day TTL).
+3. **Conversation history** --- Inquiries, quotes, and agreements are all linked. The seller can reference a quote it gave earlier in the session when confirming a deal.
 
 ## Starting a Session with a Seller
 
@@ -142,7 +142,7 @@ counter = await manager.send_message(
 
 ## Resuming Expired Sessions
 
-Sessions have a 7-day TTL. When a session expires, the buyer agent handles recovery automatically -- you do not need to detect or manage expiry yourself.
+Sessions have a 7-day TTL. When a session expires, the buyer agent handles recovery automatically --- you do not need to detect or manage expiry yourself.
 
 ### Automatic Recovery
 
@@ -287,7 +287,7 @@ Sessions are persisted to a JSON file on disk so they survive process restarts. 
 
 ### How It Works
 
-- Sessions are keyed by **seller URL** -- one active session per seller at a time
+- Sessions are keyed by **seller URL** --- one active session per seller at a time
 - The store file is created automatically if it does not exist
 - Data is loaded from disk on `SessionStore` initialization
 - Every `save()` or `remove()` call writes immediately to disk
@@ -368,7 +368,7 @@ print(f"Removed {removed} expired sessions")
 
 ## Managing Multiple Seller Sessions
 
-The buyer agent often works with multiple sellers simultaneously -- comparing inventory, running parallel negotiations, or maintaining ongoing relationships. The session system supports this natively because sessions are keyed by seller URL.
+The buyer agent often works with multiple sellers simultaneously --- comparing inventory, running parallel negotiations, or maintaining ongoing relationships. The session system supports this natively because sessions are keyed by seller URL.
 
 ### One Session Per Seller
 
@@ -437,7 +437,7 @@ This returns only non-expired sessions. Expired sessions are filtered out automa
 
 ## Closing Sessions and Cleanup
 
-When a conversation is complete, close the session explicitly. This is good practice but not strictly required -- sessions expire automatically after 7 days.
+When a conversation is complete, close the session explicitly. This is good practice but not strictly required --- sessions expire automatically after 7 days.
 
 ### Closing a Single Session
 
@@ -448,7 +448,7 @@ await manager.close_session(
 )
 ```
 
-This sends `POST /sessions/{session_id}/close` to the seller and removes the session from the local store. If the remote close fails (e.g., the session already expired on the seller side), the error is logged but not raised -- local cleanup always happens.
+This sends `POST /sessions/{session_id}/close` to the seller and removes the session from the local store. If the remote close fails (e.g., the session already expired on the seller side), the error is logged but not raised --- local cleanup always happens.
 
 ### Closing All Sessions
 
@@ -506,8 +506,8 @@ except RuntimeError as e:
 
 ## Related
 
-- [Sessions API Reference](../api/sessions.md) -- Full API documentation for SessionManager and SessionStore
-- [Negotiation Guide](negotiation.md) -- Multi-turn price negotiation with strategies
-- [Identity Strategy](identity.md) -- How identity tiers affect session behavior and pricing
-- [Authentication](../api/authentication.md) -- API key setup for authenticated sessions
-- [Seller Agent Integration](../integration/seller-agent.md) -- End-to-end integration with seller agents
+- [Sessions API Reference](../api/sessions.md) --- Full API documentation for SessionManager and SessionStore
+- [Negotiation Guide](negotiation.md) --- Multi-turn price negotiation with strategies
+- [Identity Strategy](identity.md) --- How identity tiers affect session behavior and pricing
+- [Authentication](../api/authentication.md) --- API key setup for authenticated sessions
+- [Seller Agent Integration](../integration/seller-agent.md) --- End-to-end integration with seller agents

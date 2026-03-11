@@ -91,8 +91,8 @@ Human        --> REST API      --> Buyer Agent  --> (MCP or A2A) --> Seller Agen
 
 | Protocol | Transport | Use Case |
 |----------|-----------|----------|
-| **MCP** | Streamable HTTP (SSE) | Automated workflows -- structured tool calls, deterministic |
-| **A2A** | JSON-RPC 2.0 | Discovery and negotiation -- natural language, multi-turn |
+| **MCP** | Streamable HTTP (SSE) | Automated workflows --- structured tool calls, deterministic |
+| **A2A** | JSON-RPC 2.0 | Discovery and negotiation --- natural language, multi-turn |
 | **REST** | Standard HTTP | Operator dashboards and legacy integration |
 
 MCP is the default. The `UnifiedClient` can switch protocols per-request or operate in dual-protocol mode via `connect_both()`.
@@ -119,8 +119,8 @@ The buyer agent acts as an automated media buyer. It receives campaign requireme
 
 See also: [Seller Agent Architecture](https://iabtechlab.github.io/seller-agent/architecture/overview/)
 
-## Related Pages
+## Related
 
-- [Booking Flow](booking-flow.md) -- detailed sequence diagram
-- [Models](models.md) -- data model reference
+- [Booking Flow](booking-flow.md) --- detailed sequence diagram
+- [Models](models.md) --- data model reference
 - [Seller Agent Integration](../integration/seller-agent.md)

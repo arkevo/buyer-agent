@@ -1,6 +1,6 @@
 # Bookings API
 
-The bookings endpoints manage the full campaign booking lifecycle -- from brief submission through approval to deal execution.
+The bookings endpoints manage the full campaign booking lifecycle --- from brief submission through approval to deal execution.
 
 ## Status Lifecycle
 
@@ -24,7 +24,7 @@ pending --> running --> awaiting_approval --> completed
 
 Start a new booking workflow. The flow runs in the background; poll `GET /bookings/{job_id}` for progress.
 
-### Request Body -- `BookingRequest`
+### Request Body --- `BookingRequest`
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -44,7 +44,7 @@ Start a new booking workflow. The flow runs in the background; poll `GET /bookin
 | `kpis` | `object` | no | Key performance indicators |
 | `channels` | `list[string]` | no | Preferred channels (e.g. `branding`, `ctv`, `mobile_app`, `performance`) |
 
-### Response -- `BookingResponse`
+### Response --- `BookingResponse`
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -80,7 +80,7 @@ curl -X POST http://localhost:8001/bookings \
 
 Retrieve the current status of a booking workflow.
 
-### Response -- `BookingStatus`
+### Response --- `BookingStatus`
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -106,7 +106,7 @@ curl http://localhost:8001/bookings/a1b2c3d4-5678-90ab-cdef-1234567890ab
 
 Approve specific product recommendations for booking. Only valid when the job status is `awaiting_approval`.
 
-### Request Body -- `ApprovalRequest`
+### Request Body --- `ApprovalRequest`
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|

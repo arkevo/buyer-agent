@@ -1,6 +1,6 @@
 # MCP Client (Seller Communication)
 
-The buyer agent uses the **Model Context Protocol (MCP)** as its primary protocol for calling seller agent tools. MCP provides deterministic, structured tool execution over HTTP -- ideal for automated workflows where the buyer knows exactly which operation to perform.
+The buyer agent uses the **Model Context Protocol (MCP)** as its primary protocol for calling seller agent tools. MCP provides deterministic, structured tool execution over HTTP --- ideal for automated workflows where the buyer knows exactly which operation to perform.
 
 ## Client Implementations
 
@@ -26,8 +26,8 @@ Connection flow:
 
 A lightweight HTTP fallback that does not require the MCP SDK. It calls simple REST endpoints exposed by the seller.
 
-- **Tool listing**: `GET /mcp/tools` -- returns available tool definitions
-- **Tool execution**: `POST /mcp/call` -- sends `{"name": ..., "arguments": {...}}`
+- **Tool listing**: `GET /mcp/tools` --- returns available tool definitions
+- **Tool execution**: `POST /mcp/call` --- sends `{"name": ..., "arguments": {...}}`
 - **Fallback chain**: Tries `/mcp/tools`, then `call_tool("list_tools")`, then assumes standard OpenDirect tools
 - **No session**: Each request is independent (no SSE connection)
 
@@ -175,21 +175,21 @@ Neither MCP client implementation retries failed requests automatically. For pro
 
 - **Connection errors**: Safe to retry immediately (seller may be restarting)
 - **Timeouts**: Safe to retry with backoff
-- **Tool errors** (`isError=True`): Do not retry -- the error is deterministic
-- **Auth failures** (401/403): Do not retry -- fix credentials first
+- **Tool errors** (`isError=True`): Do not retry --- the error is deterministic
+- **Auth failures** (401/403): Do not retry --- fix credentials first
 
 ### Fallback Chain
 
 The `SimpleMCPClient` implements a tool discovery fallback chain:
 
-1. Try `GET /mcp/tools` -- standard tool listing endpoint
-2. Try `call_tool("list_tools")` -- some sellers expose listing as a tool
+1. Try `GET /mcp/tools` --- standard tool listing endpoint
+2. Try `call_tool("list_tools")` --- some sellers expose listing as a tool
 3. Fall back to a default set of standard OpenDirect tools
 
 If all three fail, the client assumes the standard tool set and tool calls may fail at execution time.
 
 ## Related
 
-- [A2A Client](a2a-client.md) -- conversational protocol for discovery and negotiation
-- [Protocol Overview](protocols.md) -- comparison of all three protocols
+- [A2A Client](a2a-client.md) --- conversational protocol for discovery and negotiation
+- [Protocol Overview](protocols.md) --- comparison of all three protocols
 - [Seller MCP Documentation](https://iabtechlab.github.io/seller-agent/api/mcp/)

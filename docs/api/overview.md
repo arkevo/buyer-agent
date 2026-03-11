@@ -6,14 +6,14 @@ Base URL: `http://localhost:8001`
 
 ## Why So Few Endpoints?
 
-The buyer agent exposes only 7 REST endpoints. This is intentional -- the buyer is primarily a **client** that consumes seller APIs, not a server with a large surface area of its own.
+The buyer agent exposes only 7 REST endpoints. This is intentional --- the buyer is primarily a **client** that consumes seller APIs, not a server with a large surface area of its own.
 
-A seller agent publishes inventory, manages accounts, processes orders, and handles creative assignments -- operations that demand dozens of endpoints. The buyer agent's job is different: it discovers sellers, browses their catalogs, negotiates pricing, and books deals. Most of that work happens through outbound calls to seller systems via [MCP](mcp-client.md), [A2A](a2a-client.md), or [REST/OpenDirect](../integration/opendirect.md).
+A seller agent publishes inventory, manages accounts, processes orders, and handles creative assignments --- operations that demand dozens of endpoints. The buyer agent's job is different: it discovers sellers, browses their catalogs, negotiates pricing, and books deals. Most of that work happens through outbound calls to seller systems via [MCP](mcp-client.md), [A2A](a2a-client.md), or [REST/OpenDirect](../integration/opendirect.md).
 
 The buyer's own REST API exists for two purposes:
 
-1. **Workflow orchestration** -- the `/bookings` endpoints let operators (or upstream systems) submit a campaign brief and track the automated booking workflow.
-2. **Catalog proxy** -- the `/products/search` endpoint lets callers search seller inventory through the buyer without establishing a direct seller connection.
+1. **Workflow orchestration** --- the `/bookings` endpoints let operators (or upstream systems) submit a campaign brief and track the automated booking workflow.
+2. **Catalog proxy** --- the `/products/search` endpoint lets callers search seller inventory through the buyer without establishing a direct seller connection.
 
 !!! info "Where does the real work happen?"
     The buyer's complexity lives in its **client libraries**, not its server endpoints. See [Protocol Overview](protocols.md) for how the buyer communicates with sellers, and the sections below for the specific seller endpoints consumed.
@@ -32,9 +32,9 @@ The buyer's own REST API exists for two purposes:
 
 ### Tags
 
-- **Health** -- service health and readiness
-- **Bookings** -- campaign booking workflow lifecycle
-- **Products** -- seller inventory product search
+- **Health** --- service health and readiness
+- **Bookings** --- campaign booking workflow lifecycle
+- **Products** --- seller inventory product search
 
 ---
 
@@ -99,7 +99,7 @@ Via [A2A](a2a-client.md), the buyer sends natural language requests to the selle
 
 When the server is running, Swagger UI is available at `/docs` and ReDoc at `/redoc`. The raw OpenAPI schema is at `/openapi.json`.
 
-## Related Pages
+## Related
 
 - [Authentication](authentication.md)
 - [Protocol Overview](protocols.md)

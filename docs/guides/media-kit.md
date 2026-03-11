@@ -1,6 +1,6 @@
 # Media Kit Browsing
 
-A seller's **media kit** is its inventory catalog -- a curated collection of ad packages that describe what the seller has to offer, how it is priced, and who it reaches. Before you can book a deal, you need to browse what is available. The `MediaKitClient` is the buyer agent's tool for doing that.
+A seller's **media kit** is its inventory catalog --- a curated collection of ad packages that describe what the seller has to offer, how it is priced, and who it reaches. Before you can book a deal, you need to browse what is available. The `MediaKitClient` is the buyer agent's tool for doing that.
 
 This guide walks through practical patterns for browsing inventory, interpreting what you see, and connecting discovery to the rest of the buying workflow.
 
@@ -11,7 +11,7 @@ This guide walks through practical patterns for browsing inventory, interpreting
 
 ### Public Browsing (No Authentication)
 
-The fastest way to evaluate a seller's inventory is to browse without authentication. You see package names, descriptions, ad formats, content categories, and price ranges -- enough to decide whether it is worth authenticating for exact pricing.
+The fastest way to evaluate a seller's inventory is to browse without authentication. You see package names, descriptions, ad formats, content categories, and price ranges --- enough to decide whether it is worth authenticating for exact pricing.
 
 ```python
 from ad_buyer.media_kit import MediaKitClient
@@ -195,7 +195,7 @@ async with MediaKitClient(api_key="your-key") as client:
 
 Key details about aggregation:
 
-- Sellers are queried concurrently -- a slow or unreachable seller does not block the others.
+- Sellers are queried concurrently --- a slow or unreachable seller does not block the others.
 - Failed sellers are silently skipped (warnings are logged).
 - Every returned `PackageSummary` has its `seller_url` set, so you can trace each package back to its source.
 
@@ -277,7 +277,7 @@ sequenceDiagram
     Seller-->>Client: Best pricing, negotiation enabled
 ```
 
-This approach minimizes identity exposure -- you only reveal who you are when you are ready to transact.
+This approach minimizes identity exposure --- you only reveal who you are when you are ready to transact.
 
 !!! info "Identity Strategy Automation"
     The `IdentityStrategy` class can automate tier selection based on deal value, seller trust, and campaign goals. See the [Identity Strategy Guide](identity.md) for details.
@@ -299,17 +299,17 @@ graph LR
 
 ### Step-by-Step
 
-1. **Browse** -- Use `get_media_kit()` or `list_packages()` to survey what is available. Start public to minimize information exposure.
+1. **Browse** --- Use `get_media_kit()` or `list_packages()` to survey what is available. Start public to minimize information exposure.
 
-2. **Select** -- Identify packages that match your campaign requirements (ad format, content category, geo, device targeting).
+2. **Select** --- Identify packages that match your campaign requirements (ad format, content category, geo, device targeting).
 
-3. **Get exact pricing** -- Authenticate with your API key and call `get_package()` on your shortlisted packages. Compare `exact_price` and `floor_price`.
+3. **Get exact pricing** --- Authenticate with your API key and call `get_package()` on your shortlisted packages. Compare `exact_price` and `floor_price`.
 
-4. **Check negotiation eligibility** -- Look at the `negotiation_enabled` flag on `PackageDetail`. This is `True` only for Agency and Advertiser tier buyers.
+4. **Check negotiation eligibility** --- Look at the `negotiation_enabled` flag on `PackageDetail`. This is `True` only for Agency and Advertiser tier buyers.
 
-5. **Negotiate or accept** -- If negotiation is enabled and the price is above your target, use the [Negotiation module](negotiation.md) to drive counter-offers. If not, accept the posted price.
+5. **Negotiate or accept** --- If negotiation is enabled and the price is above your target, use the [Negotiation module](negotiation.md) to drive counter-offers. If not, accept the posted price.
 
-6. **Book the deal** -- Use the [Booking flow](../api/bookings.md) to finalize the transaction via the OpenDirect API.
+6. **Book the deal** --- Use the [Booking flow](../api/bookings.md) to finalize the transaction via the OpenDirect API.
 
 ### Connecting to Negotiation
 
@@ -339,7 +339,7 @@ if isinstance(pkg, PackageDetail) and pkg.negotiation_enabled:
 
 **Use aggregation for market research.** The `aggregate_across_sellers` method is useful for comparing inventory and pricing across the market before committing to a specific seller.
 
-**Filter by layer to match your needs.** Curated packages are premium bundles the publisher has assembled -- they tend to perform better but cost more. Synced packages come directly from the ad server and offer broader reach at lower prices.
+**Filter by layer to match your needs.** Curated packages are premium bundles the publisher has assembled --- they tend to perform better but cost more. Synced packages come directly from the ad server and offer broader reach at lower prices.
 
 **Watch for `negotiation_enabled`.** Not all packages support negotiation. Check this flag before investing time in a negotiation strategy. If it is `False`, you must accept the posted price or look elsewhere.
 
@@ -347,9 +347,9 @@ if isinstance(pkg, PackageDetail) and pkg.negotiation_enabled:
 
 ## Related
 
-- [Media Kit API Reference](../api/media-kit.md) -- Endpoint details, data models, error handling
-- [Identity Strategy Guide](identity.md) -- How identity tier affects pricing and access
-- [Negotiation Guide](negotiation.md) -- Multi-turn price negotiation after discovery
-- [Bookings API](../api/bookings.md) -- Booking deals after negotiation
-- [Authentication](../api/authentication.md) -- API key setup for authenticated access
-- [Seller Media Kit Setup](https://iabtechlab.github.io/seller-agent/guides/media-kit/) -- How publishers configure their media kit
+- [Media Kit API Reference](../api/media-kit.md) --- Endpoint details, data models, error handling
+- [Identity Strategy Guide](identity.md) --- How identity tier affects pricing and access
+- [Negotiation Guide](negotiation.md) --- Multi-turn price negotiation after discovery
+- [Bookings API](../api/bookings.md) --- Booking deals after negotiation
+- [Authentication](../api/authentication.md) --- API key setup for authenticated access
+- [Seller Media Kit Setup](https://iabtechlab.github.io/seller-agent/guides/media-kit/) --- How publishers configure their media kit

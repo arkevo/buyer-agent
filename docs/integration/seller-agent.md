@@ -56,30 +56,30 @@ This returns the seller's capabilities, supported OpenDirect version, and availa
 
 The buyer queries the seller's product catalog during the research phase:
 
-- **List products**: `GET /products?$skip=0&$top=50` -- paginated product listing
-- **Search products**: `POST /products/search` -- filtered search with channel, format, pricing criteria
-- **Get product**: `GET /products/{id}` -- single product details
+- **List products**: `GET /products?$skip=0&$top=50` --- paginated product listing
+- **Search products**: `POST /products/search` --- filtered search with channel, format, pricing criteria
+- **Get product**: `GET /products/{id}` --- single product details
 
 ### Availability and Pricing
 
 Before recommending products, channel specialists check availability:
 
-- **Check avails**: `POST /products/avails` -- returns available impressions, estimated CPM, total cost, and delivery confidence
+- **Check avails**: `POST /products/avails` --- returns available impressions, estimated CPM, total cost, and delivery confidence
 
 ### Order and Line Management
 
 After approval, the buyer creates orders and books line items:
 
-- **Create order**: `POST /accounts/{id}/orders` -- creates an insertion order
-- **Create line**: `POST /accounts/{id}/orders/{id}/lines` -- creates a line item for a product
-- **Reserve line**: `PATCH /accounts/{id}/orders/{id}/lines/{id}?action=reserve` -- reserves inventory
-- **Book line**: `PATCH /accounts/{id}/orders/{id}/lines/{id}?action=book` -- confirms the booking
+- **Create order**: `POST /accounts/{id}/orders` --- creates an insertion order
+- **Create line**: `POST /accounts/{id}/orders/{id}/lines` --- creates a line item for a product
+- **Reserve line**: `PATCH /accounts/{id}/orders/{id}/lines/{id}?action=reserve` --- reserves inventory
+- **Book line**: `PATCH /accounts/{id}/orders/{id}/lines/{id}?action=book` --- confirms the booking
 
 ### Performance Monitoring
 
 For in-flight campaigns:
 
-- **Line stats**: `GET /accounts/{id}/orders/{id}/lines/{id}/stats` -- delivery metrics, pacing, spend
+- **Line stats**: `GET /accounts/{id}/orders/{id}/lines/{id}/stats` --- delivery metrics, pacing, spend
 
 ## Request Flow
 

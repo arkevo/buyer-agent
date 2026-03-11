@@ -254,7 +254,7 @@ When a `DealStore` is provided, the flow persists deal state at three points:
 | `evaluate_and_select` | Updates status after product selection | `evaluating_pricing` |
 | `request_deal_id` | Updates with final status | `deal_created` or `failed` |
 
-Persistence is best-effort -- failures are logged but never raise exceptions, so the flow continues even if the store is unavailable.
+Persistence is best-effort --- failures are logged but never raise exceptions, so the flow continues even if the store is unavailable.
 
 ---
 
@@ -279,8 +279,8 @@ if status["status"] == "failed":
 
 ## Related
 
-- [Agent Hierarchy](agent-hierarchy.md) -- DSP Specialist role in the hierarchy
-- [Tools Reference](tools.md) -- DSP tools used by this flow
-- [Deals API](../api/deals.md) -- REST API for quote-then-book deals
-- [Booking Flow](booking-flow.md) -- Alternative flow for full campaign booking
-- [Identity Strategy](../guides/identity.md) -- How buyer identity affects pricing tiers
+- [Agent Hierarchy](agent-hierarchy.md) --- DSP Specialist role in the hierarchy
+- [Tools Reference](tools.md) --- DSP tools used by this flow
+- [Deals API](../api/deals.md) --- REST API for quote-then-book deals
+- [Booking Flow](booking-flow.md) --- Alternative flow for full campaign booking
+- [Identity Strategy](../guides/identity.md) --- How buyer identity affects pricing tiers

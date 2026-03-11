@@ -8,13 +8,13 @@ theme:
   name: material
   palette:
     - scheme: default
-      primary: teal
+      primary: indigo
       accent: amber
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - scheme: slate
-      primary: teal
+      primary: indigo
       accent: amber
       toggle:
         icon: material/brightness-4
@@ -77,8 +77,8 @@ nav:
       - Deal Store: architecture/deal-store.md
       - Models: architecture/models.md
       - Tools Reference: architecture/tools.md
-      - Order State Machine (Planned): architecture/state-machine.md
-      - Event Bus (Planned): architecture/event-bus.md
+      - Order State Machine: architecture/state-machine.md
+      - Event Bus: architecture/event-bus.md
   - Guides:
       - Configuration: guides/configuration.md
       - Deal Booking: guides/deal-booking.md
@@ -88,10 +88,10 @@ nav:
       - Identity Strategy: guides/identity.md
       - Sessions: guides/sessions.md
       - Multi-Seller Discovery: guides/multi-seller.md
-      - Multi-Seller Orchestration (Planned): guides/multi-seller-orchestration.md
-      - Campaign Pipeline (Planned): guides/campaign-pipeline.md
-      - Budget Pacing (Planned): guides/budget-pacing.md
-      - Creative Management (Planned): guides/creative-management.md
+      - Multi-Seller Orchestration: guides/multi-seller-orchestration.md
+      - Campaign Pipeline: guides/campaign-pipeline.md
+      - Budget Pacing: guides/budget-pacing.md
+      - Creative Management: guides/creative-management.md
   - Integration:
       - Seller Agent Guide: integration/seller-agent.md
       - OpenDirect Protocol: integration/opendirect.md
