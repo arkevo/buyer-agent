@@ -47,6 +47,7 @@ app = FastAPI(
         {"name": "Health", "description": "Service health and readiness"},
         {"name": "Bookings", "description": "Campaign booking workflow lifecycle"},
         {"name": "Products", "description": "Seller inventory product search"},
+        {"name": "Events", "description": "Event bus query endpoints"},
     ],
 )
 
@@ -407,6 +408,50 @@ async def search_products(request: ProductSearchRequest) -> dict[str, Any]:
     )
 
     return {"results": result}
+
+
+# ---------------------------------------------------------------------------
+# Event endpoints
+# ---------------------------------------------------------------------------
+
+
+@app.get("/events", tags=["Events"])
+async def list_events(
+    event_type: Optional[str] = None,
+    flow_id: Optional[str] = None,
+    session_id: Optional[str] = None,
+    limit: int = 50,
+) -> dict[str, Any]:
+    """List events from the event bus.
+
+    Queries the in-memory event bus for recent events, with optional
+    filtering by event_type, flow_id, or session_id.
+    """
+    from ...events.bus import get_event_bus
+
+    bus = await get_event_bus()
+    events = await bus.list_events(
+        flow_id=flow_id,
+        event_type=event_type,
+        session_id=session_id,
+        limit=limit,
+    )
+    return {
+        "events": [e.model_dump(mode="json") for e in events],
+        "total": len(events),
+    }
+
+
+@app.get("/events/{event_id}", tags=["Events"])
+async def get_event(event_id: str) -> dict[str, Any]:
+    """Retrieve a single event by ID."""
+    from ...events.bus import get_event_bus
+
+    bus = await get_event_bus()
+    event = await bus.get_event(event_id)
+    if event is None:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return event.model_dump(mode="json")
 
 
 async def _run_booking_flow(job_id: str, request: BookingRequest) -> None:

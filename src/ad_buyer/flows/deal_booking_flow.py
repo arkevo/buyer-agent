@@ -29,6 +29,8 @@ from ..models.flow_state import (
 )
 from ..models.state_machine import BuyerDealStatus, DealStateMachine, InvalidTransitionError
 from ..models.ucp import AudiencePlan, SignalType, UCPConsent
+from ..events.helpers import emit_event_sync
+from ..events.models import EventType
 from ..storage.deal_store import DealStore
 
 logger = logging.getLogger(__name__)
@@ -141,6 +143,13 @@ class DealBookingFlow(Flow[BookingState]):
 
         self.state.execution_status = ExecutionStatus.BRIEF_RECEIVED
         self.state.updated_at = datetime.utcnow()
+
+        # Emit campaign.created event
+        emit_event_sync(
+            EventType.CAMPAIGN_CREATED,
+            flow_type="deal_booking",
+            payload={"name": brief.get("name", ""), "budget": brief.get("budget", 0)},
+        )
 
         return {"status": "success", "brief": brief}
 
@@ -308,6 +317,16 @@ class DealBookingFlow(Flow[BookingState]):
 
             self.state.execution_status = ExecutionStatus.BUDGET_ALLOCATED
             self.state.updated_at = datetime.utcnow()
+
+            # Emit budget.allocated event
+            emit_event_sync(
+                EventType.BUDGET_ALLOCATED,
+                flow_type="deal_booking",
+                payload={
+                    "channels": list(self.state.budget_allocations.keys()),
+                    "total_budget": self.state.campaign_brief.get("budget", 0),
+                },
+            )
 
             return {
                 "status": "success",
@@ -630,6 +649,20 @@ class DealBookingFlow(Flow[BookingState]):
 
         self.state.execution_status = ExecutionStatus.COMPLETED
         self.state.updated_at = datetime.utcnow()
+
+        # Emit deal.booked event for each booked line
+        for booked in self.state.booked_lines:
+            emit_event_sync(
+                EventType.DEAL_BOOKED,
+                flow_type="deal_booking",
+                deal_id=getattr(booked, "line_id", ""),
+                payload={
+                    "product_id": booked.product_id,
+                    "channel": booked.channel,
+                    "impressions": booked.impressions,
+                    "cost": booked.cost,
+                },
+            )
 
         return {
             "status": "success",

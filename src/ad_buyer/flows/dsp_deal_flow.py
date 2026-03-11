@@ -22,6 +22,8 @@ from ..models.buyer_identity import (
     DealResponse,
     DealType,
 )
+from ..events.helpers import emit_event_sync
+from ..events.models import EventType
 from ..models.state_machine import BuyerDealStatus, DealStateMachine, InvalidTransitionError
 from ..storage.deal_store import DealStore
 from ..tools.dsp import DiscoverInventoryTool, GetPricingTool, RequestDealTool
@@ -234,6 +236,18 @@ class DSPDealFlow(Flow[DSPFlowState]):
         self.state.status = DSPFlowStatus.REQUEST_RECEIVED
         self.state.updated_at = datetime.utcnow()
 
+        # Emit quote.requested event
+        emit_event_sync(
+            EventType.QUOTE_REQUESTED,
+            flow_type="dsp_deal",
+            payload={
+                "request": request[:200],
+                "deal_type": self.state.deal_type.value,
+                "impressions": self.state.impressions,
+                "max_cpm": self.state.max_cpm,
+            },
+        )
+
         # Persist initial deal record
         import json as _json
 
@@ -278,6 +292,13 @@ class DSPDealFlow(Flow[DSPFlowState]):
             # Parse discovery results (simplified - in production would parse structured data)
             # For now, store raw results and let the agent process
             self.state.updated_at = datetime.utcnow()
+
+            # Emit inventory.discovered event
+            emit_event_sync(
+                EventType.INVENTORY_DISCOVERED,
+                flow_type="dsp_deal",
+                payload={"query": self.state.request[:200]},
+            )
 
             return {
                 "status": "success",
@@ -341,6 +362,13 @@ Return the product_id of the best matching product and explain why.""",
             if product_id:
                 self.state.selected_product_id = product_id
                 self._persist_deal_status("evaluating_pricing")
+
+                # Emit quote.received event
+                emit_event_sync(
+                    EventType.QUOTE_RECEIVED,
+                    flow_type="dsp_deal",
+                    payload={"product_id": product_id},
+                )
 
                 # Get detailed pricing
                 pricing_result = self._pricing_tool._run(
@@ -414,6 +442,17 @@ Return the product_id of the best matching product and explain why.""",
 
             # Persist deal creation status
             self._persist_deal_status("deal_created")
+
+            # Emit deal.booked event
+            emit_event_sync(
+                EventType.DEAL_BOOKED,
+                flow_type="dsp_deal",
+                deal_id=self._store_deal_id or "",
+                payload={
+                    "product_id": product_id,
+                    "deal_type": self.state.deal_type.value,
+                },
+            )
 
             return {
                 "status": "success",
