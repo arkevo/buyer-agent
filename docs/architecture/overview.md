@@ -76,6 +76,7 @@ graph TB
 | **IABMCPClient** | MCP SDK client with Streamable HTTP transport | `clients/mcp_client.py` |
 | **A2AClient** | JSON-RPC 2.0 client for conversational agent-to-agent requests | `clients/a2a_client.py` |
 | **OpenDirectClient** | Async HTTP client for IAB OpenDirect 2.1 seller APIs | `clients/opendirect_client.py` |
+| **NegotiationClient** | Multi-turn price negotiation with seller agents via A2A/proposals | `clients/negotiation_client.py` |
 | **BookingState** | Pydantic state model tracking the full flow lifecycle | `models/flow_state.py` |
 | **Settings** | Environment-based configuration via pydantic-settings | `config/settings.py` |
 
@@ -115,7 +116,7 @@ graph LR
     Buyer -->|"status + booked lines"| CM
 ```
 
-The buyer agent acts as an automated media buyer. It receives campaign requirements from a user or campaign manager, uses AI agents to plan and research, and executes deals against one or more seller agents using MCP (primary), A2A (conversational), or OpenDirect 2.1 REST (legacy).
+The buyer agent acts as an automated media buyer. It receives campaign requirements from a user or campaign manager, uses AI agents to plan and research, negotiates pricing for eligible buyer tiers, and executes deals against one or more seller agents using MCP (primary), A2A (conversational), or OpenDirect 2.1 REST (legacy).
 
 See also: [Seller Agent Architecture](https://iabtechlab.github.io/seller-agent/architecture/overview/)
 

@@ -196,6 +196,12 @@ Performance metrics for a line item. Fields: `line_id`, `impressions_delivered`,
 | `OrderStatus` | `PENDING`, `APPROVED`, `REJECTED` |
 | `LineBookingStatus` | `Draft`, `PendingReservation`, `Reserved`, `PendingBooking`, `Booked`, `InFlight`, `Finished`, `Stopped`, `Cancelled`, `Expired` |
 
+## Negotiation Models
+
+The negotiation module defines its own set of models for managing multi-turn price negotiations with seller agents. These include negotiation state, offer history, and strategy configuration. See the [Negotiation Guide](../guides/negotiation.md) for the full model reference and usage examples.
+
+---
+
 ## Model Relationships
 
 ```mermaid

@@ -358,6 +358,10 @@ sequenceDiagram
     CS->>RA: Research inventory
     RA-->>CS: Ranked product recommendations
     CS->>CS: Select best inventory
+    opt Negotiation (eligible tiers)
+        CS->>EA: Negotiate pricing
+        EA-->>CS: Negotiated terms
+    end
     CS->>EA: Book selected placements
     EA-->>CS: Booking confirmations
     CS-->>PM: Channel results

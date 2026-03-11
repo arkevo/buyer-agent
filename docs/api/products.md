@@ -77,3 +77,6 @@ The products endpoint returns structured error responses with an HTTP status cod
 
 !!! tip "Empty results are not errors"
     If no products match the search criteria, the endpoint returns `200` with an empty `results` array --- not a `404`.
+
+!!! tip "Negotiate Before Booking"
+    After finding products through search, eligible buyer tiers (Agency and Advertiser) can negotiate pricing with the seller before placing bookings. See the [Negotiation Guide](../guides/negotiation.md) for details.
