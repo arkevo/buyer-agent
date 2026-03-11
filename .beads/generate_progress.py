@@ -137,7 +137,7 @@ def format_date(iso_str):
 
 
 def generate():
-    issues = load_issues()
+    issues = [i for i in load_issues() if i.get("status") != "tombstone"]
     if not issues:
         OUTPUT_PATH.write_text("# Progress\n\nNo issues found.\n")
         return
