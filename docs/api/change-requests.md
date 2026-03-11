@@ -6,7 +6,7 @@ Change requests allow the buyer to propose post-deal modifications to orders on 
     The buyer does not yet have a dedicated `ChangeRequestsClient`. The workflows below document the seller's REST API that the buyer calls directly. A typed client is planned for a future release.
 
 !!! tip "Seller-side reference"
-    For the full server-side behavior -- including severity auto-classification, validation rules, and the review/apply workflow -- see the [Seller Change Requests docs](https://iabtechlab.github.io/seller-agent/api/change-requests/).
+    For the full server-side behavior --- including severity auto-classification, validation rules, and the review/apply workflow --- see the [Seller Change Requests docs](https://iabtechlab.github.io/seller-agent/api/change-requests/).
 
 ---
 
@@ -409,7 +409,7 @@ for change in changes:
 
 ## Related
 
-- [Seller Change Requests](https://iabtechlab.github.io/seller-agent/api/change-requests/) -- Full server-side behavior, review/apply workflow
-- [Deals API](deals.md) -- Creating the deals that change requests modify
-- [Bookings API](bookings.md) -- Campaign booking workflow
-- [Authentication](authentication.md) -- API key setup for seller communication
+- [Seller Change Requests](https://iabtechlab.github.io/seller-agent/api/change-requests/) --- Full server-side behavior, review/apply workflow
+- [Deals API](deals.md) --- Creating the deals that change requests modify
+- [Bookings API](bookings.md) --- Campaign booking workflow
+- [Authentication](authentication.md) --- API key setup for seller communication

@@ -8,7 +8,7 @@ The `A2AClient` connects to a seller's A2A endpoint and sends natural language m
 
 - **Endpoint**: `{base_url}/a2a/{agent_type}/jsonrpc`
 - **Agent card**: `{base_url}/a2a/{agent_type}/.well-known/agent-card.json`
-- **Agent types**: `"buyer"` or `"seller"` -- determines which agent persona handles the request
+- **Agent types**: `"buyer"` or `"seller"` --- determines which agent persona handles the request
 - **Protocol**: JSON-RPC 2.0 with `message/send` method
 - **Transport**: Standard HTTP POST with `Content-Type: application/json`
 
@@ -249,7 +249,7 @@ async with A2AClient(base_url="http://seller:8001") as client:
 | Automated booking workflows | -- | Preferred |
 | Deterministic, repeatable results | -- | Preferred |
 
-Use A2A when the request benefits from natural language interpretation -- for example, asking "What CTV inventory do you have under $25 with household targeting?" rather than constructing exact filter parameters.
+Use A2A when the request benefits from natural language interpretation --- for example, asking "What CTV inventory do you have under $25 with household targeting?" rather than constructing exact filter parameters.
 
 ## Error Handling
 
@@ -291,6 +291,6 @@ except httpx.HTTPStatusError as e:
 
 ## Related
 
-- [MCP Client](mcp-client.md) -- structured tool execution protocol
-- [Protocol Overview](protocols.md) -- comparison of all three protocols
+- [MCP Client](mcp-client.md) --- structured tool execution protocol
+- [Protocol Overview](protocols.md) --- comparison of all three protocols
 - [Seller A2A Documentation](https://iabtechlab.github.io/seller-agent/api/a2a/)

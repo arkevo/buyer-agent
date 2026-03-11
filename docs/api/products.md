@@ -6,7 +6,7 @@ The products endpoint lets you search the seller agent's product catalog directl
 
 Search available advertising products from connected seller agents.
 
-### Request Body -- `ProductSearchRequest`
+### Request Body --- `ProductSearchRequest`
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
@@ -76,4 +76,4 @@ The products endpoint returns structured error responses with an HTTP status cod
 | `500` | `internal_error` | Unexpected error during product search execution |
 
 !!! tip "Empty results are not errors"
-    If no products match the search criteria, the endpoint returns `200` with an empty `results` array -- not a `404`.
+    If no products match the search criteria, the endpoint returns `200` with an empty `results` array --- not a `404`.

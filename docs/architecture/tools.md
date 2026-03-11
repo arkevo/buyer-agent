@@ -113,9 +113,9 @@ result = tool._run(
 ```
 
 !!! tip "Score thresholds"
-    - **>= 0.7**: Strong match -- proceed with targeting
-    - **0.5 -- 0.7**: Moderate -- proceed with caution, may limit reach
-    - **< 0.5**: Weak -- consider broadening targeting or reviewing alternatives
+    - **>= 0.7**: Strong match --- proceed with targeting
+    - **0.5 --- 0.7**: Moderate --- proceed with caution, may limit reach
+    - **< 0.5**: Weak --- consider broadening targeting or reviewing alternatives
 
 ---
 
@@ -507,7 +507,7 @@ dsp_tools = [
 
 ## Related
 
-- [Agent Hierarchy](agent-hierarchy.md) -- Which agents use which tools
-- [DSP Deal Flow](dsp-deal-flow.md) -- How DSP tools work together in a flow
-- [Booking Flow](booking-flow.md) -- How execution tools drive the booking lifecycle
-- [Configuration](../guides/configuration.md) -- Tool-related settings
+- [Agent Hierarchy](agent-hierarchy.md) --- Which agents use which tools
+- [DSP Deal Flow](dsp-deal-flow.md) --- How DSP tools work together in a flow
+- [Booking Flow](booking-flow.md) --- How execution tools drive the booking lifecycle
+- [Configuration](../guides/configuration.md) --- Tool-related settings

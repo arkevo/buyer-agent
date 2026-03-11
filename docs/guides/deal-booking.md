@@ -1,13 +1,13 @@
 # Deal Booking
 
-This guide walks you through the complete deal booking process -- from browsing a seller's inventory to getting a confirmed Deal ID you can activate in your DSP.
+This guide walks you through the complete deal booking process --- from browsing a seller's inventory to getting a confirmed Deal ID you can activate in your DSP.
 
 ## Prerequisites
 
 Before you start, you need:
 
-- **A running seller agent** -- The seller's API must be reachable (e.g. `http://seller.example.com:8001`). See [Seller Agent Integration](../integration/seller-agent.md) for connection details.
-- **An API key** -- Get one from the seller for authenticated access. Public browsing works without a key, but you need one to see exact pricing and book deals.
+- **A running seller agent** --- The seller's API must be reachable (e.g. `http://seller.example.com:8001`). See [Seller Agent Integration](../integration/seller-agent.md) for connection details.
+- **An API key** --- Get one from the seller for authenticated access. Public browsing works without a key, but you need one to see exact pricing and book deals.
 - **Python 3.11+** with the `ad_buyer` package installed.
 
 !!! tip "Check your access tier"
@@ -106,8 +106,8 @@ async with MediaKitClient(api_key="your-api-key") as mk:
 
 Look for two things on each package:
 
-- **`negotiation_enabled`** -- If `True`, you can negotiate the price down (Step 4).
-- **`product_id`** on the placements -- You'll need this to request a quote.
+- **`negotiation_enabled`** --- If `True`, you can negotiate the price down (Step 4).
+- **`product_id`** on the placements --- You'll need this to request a quote.
 
 See [Media Kit](../api/media-kit.md) for the full API.
 
@@ -211,9 +211,9 @@ if deal.openrtb_params:
 
 The seller returns a `DealResponse` with:
 
-- **`deal_id`** -- The seller's unique deal identifier.
-- **`openrtb_params`** -- Plug these into your DSP's deal targeting. The `id` field is what goes into OpenRTB bid requests.
-- **`activation_instructions`** -- Any seller-specific setup steps (e.g., creative specs, trafficking notes).
+- **`deal_id`** --- The seller's unique deal identifier.
+- **`openrtb_params`** --- Plug these into your DSP's deal targeting. The `id` field is what goes into OpenRTB bid requests.
+- **`activation_instructions`** --- Any seller-specific setup steps (e.g., creative specs, trafficking notes).
 
 ### Step 6: Track Your Deal
 
@@ -301,13 +301,13 @@ result = flow.kickoff()
 
 **What happens inside:**
 
-1. **Brief validation** -- Checks required fields (objectives, budget, dates, audience).
-2. **Audience planning** -- Analyzes targeting requirements, estimates coverage per channel.
-3. **Budget allocation** -- Portfolio manager splits budget across channels (branding, CTV, mobile, performance).
-4. **Parallel research** -- Channel specialists research inventory simultaneously.
-5. **Consolidation** -- All recommendations are gathered for review.
-6. **Approval checkpoint** -- Waits for human approval (or auto-approves).
-7. **Booking execution** -- Books approved recommendations.
+1. **Brief validation** --- Checks required fields (objectives, budget, dates, audience).
+2. **Audience planning** --- Analyzes targeting requirements, estimates coverage per channel.
+3. **Budget allocation** --- Portfolio manager splits budget across channels (branding, CTV, mobile, performance).
+4. **Parallel research** --- Channel specialists research inventory simultaneously.
+5. **Consolidation** --- All recommendations are gathered for review.
+6. **Approval checkpoint** --- Waits for human approval (or auto-approves).
+7. **Booking execution** --- Books approved recommendations.
 
 **Approving recommendations:**
 
@@ -355,7 +355,7 @@ curl -X POST http://localhost:8001/bookings/{job_id}/approve-all
 
 ## Using DSPDealFlow (Single-Deal, Direct Mode)
 
-`DSPDealFlow` is for when you know roughly what you want and just need a Deal ID. It discovers inventory, picks the best match, and requests a deal -- all in one shot.
+`DSPDealFlow` is for when you know roughly what you want and just need a Deal ID. It discovers inventory, picks the best match, and requests a deal --- all in one shot.
 
 Use this for **single-deal, targeted acquisition** rather than full-campaign planning.
 
@@ -387,10 +387,10 @@ print(f"Deal: {result['status']['deal_response']}")
 
 **Flow steps:**
 
-1. **Receive request** -- Validates the natural-language request and buyer context.
-2. **Discover inventory** -- Searches the seller's catalog for matches.
-3. **Evaluate and select** -- Uses a DSP agent (CrewAI) to pick the best product.
-4. **Request Deal ID** -- Calls the seller's deal endpoint for the selected product.
+1. **Receive request** --- Validates the natural-language request and buyer context.
+2. **Discover inventory** --- Searches the seller's catalog for matches.
+3. **Evaluate and select** --- Uses a DSP agent (CrewAI) to pick the best product.
+4. **Request Deal ID** --- Calls the seller's deal endpoint for the selected product.
 
 **Key difference from DealBookingFlow:**
 
@@ -452,7 +452,7 @@ client = DealsClient(
 
 ### Expired Quotes
 
-Quotes have a limited lifetime. If you try to book an expired quote, you'll get a 409 or 400 error. The fix is simple -- request a new quote:
+Quotes have a limited lifetime. If you try to book an expired quote, you'll get a 409 or 400 error. The fix is simple --- request a new quote:
 
 ```python
 try:
@@ -466,7 +466,7 @@ except DealsClientError as e:
 
 ### DealStore Persistence Errors
 
-The `DealsClient` and flow classes treat persistence as **best-effort**. If the `DealStore` fails (disk full, locked, etc.), the API call still succeeds -- you just lose the local record. Errors are logged but never re-raised.
+The `DealsClient` and flow classes treat persistence as **best-effort**. If the `DealStore` fails (disk full, locked, etc.), the API call still succeeds --- you just lose the local record. Errors are logged but never re-raised.
 
 ---
 
@@ -496,8 +496,8 @@ async with DealsClient(seller_url=url, api_key=key) as client:
 
 ## Related
 
-- [Negotiation](negotiation.md) -- Multi-turn price negotiation strategies
-- [Media Kit](../api/media-kit.md) -- Browsing seller inventory
-- [Bookings API](../api/bookings.md) -- REST API for the booking workflow
-- [Authentication](../api/authentication.md) -- API key setup and access tiers
-- [Seller Agent Integration](../integration/seller-agent.md) -- Connecting to a seller
+- [Negotiation](negotiation.md) --- Multi-turn price negotiation strategies
+- [Media Kit](../api/media-kit.md) --- Browsing seller inventory
+- [Bookings API](../api/bookings.md) --- REST API for the booking workflow
+- [Authentication](../api/authentication.md) --- API key setup and access tiers
+- [Seller Agent Integration](../integration/seller-agent.md) --- Connecting to a seller

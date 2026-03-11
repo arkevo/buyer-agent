@@ -2,8 +2,8 @@
 
 The buyer agent has two distinct authentication concerns:
 
-1. **Inbound authentication** -- protecting the buyer's own API from unauthorized callers.
-2. **Outbound authentication** -- attaching the correct credentials when the buyer calls seller endpoints.
+1. **Inbound authentication** --- protecting the buyer's own API from unauthorized callers.
+2. **Outbound authentication** --- attaching the correct credentials when the buyer calls seller endpoints.
 
 This page covers both, including the `ApiKeyStore` for managing per-seller credentials and the `AuthMiddleware` that injects keys into outgoing requests.
 
@@ -80,7 +80,7 @@ Authorization: Bearer <api_key>
 X-Api-Key: <api_key>
 ```
 
-Unauthenticated requests receive `public`-tier access only -- price ranges instead of exact prices, no negotiation, and limited data.
+Unauthenticated requests receive `public`-tier access only --- price ranges instead of exact prices, no negotiation, and limited data.
 
 ### Seller Access Tiers
 
@@ -260,7 +260,7 @@ if auth_result.needs_reauth:
 | `status_code` | `int` | HTTP status code from the response |
 
 !!! note "403 is not re-auth"
-    Only HTTP 401 (authentication failure) triggers `needs_reauth`. HTTP 403 (authorization / insufficient permissions) is intentionally excluded -- it means the key is valid but the buyer lacks access to the requested resource.
+    Only HTTP 401 (authentication failure) triggers `needs_reauth`. HTTP 403 (authorization / insufficient permissions) is intentionally excluded --- it means the key is valid but the buyer lacks access to the requested resource.
 
 ---
 
@@ -412,7 +412,7 @@ For multi-seller scenarios, use `ApiKeyStore` + `AuthMiddleware` to manage crede
 
 ## Related
 
-- [Seller Authentication](https://iabtechlab.github.io/seller-agent/api/authentication/) -- Seller-side key management, access tiers, and trust levels
-- [Deals API](deals.md) -- Deal client that uses these auth mechanisms
-- [Seller Discovery](seller-discovery.md) -- Discovering sellers to authenticate with
-- [Identity Strategy](../guides/identity.md) -- How buyer identity maps to seller tiers
+- [Seller Authentication](https://iabtechlab.github.io/seller-agent/api/authentication/) --- Seller-side key management, access tiers, and trust levels
+- [Deals API](deals.md) --- Deal client that uses these auth mechanisms
+- [Seller Discovery](seller-discovery.md) --- Discovering sellers to authenticate with
+- [Identity Strategy](../guides/identity.md) --- How buyer identity maps to seller tiers

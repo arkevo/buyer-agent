@@ -7,13 +7,13 @@ This guide walks through the process of discovering multiple sellers, comparing 
 
 ## Why Multi-Seller?
 
-**Competitive pricing** -- Comparing packages across sellers ensures you are not overpaying. Sellers price differently based on their inventory mix, audience composition, and demand.
+**Competitive pricing** --- Comparing packages across sellers ensures you are not overpaying. Sellers price differently based on their inventory mix, audience composition, and demand.
 
-**Portfolio optimization** -- A CTV-focused seller may have premium living-room inventory but limited mobile reach. Combining packages from specialized sellers lets you build a balanced media plan.
+**Portfolio optimization** --- A CTV-focused seller may have premium living-room inventory but limited mobile reach. Combining packages from specialized sellers lets you build a balanced media plan.
 
-**Risk diversification** -- Spreading spend across sellers protects against delivery shortfalls. If one seller under-delivers, the others can absorb the gap.
+**Risk diversification** --- Spreading spend across sellers protects against delivery shortfalls. If one seller under-delivers, the others can absorb the gap.
 
-**Negotiation leverage** -- When sellers know you are shopping competitively, they are more likely to offer favorable terms. The buyer agent's identity strategy lets you control exactly how much you reveal to each seller.
+**Negotiation leverage** --- When sellers know you are shopping competitively, they are more likely to offer favorable terms. The buyer agent's identity strategy lets you control exactly how much you reveal to each seller.
 
 ## Step-by-Step Workflow
 
@@ -276,7 +276,7 @@ print(f"Selected {len(selected)} packages, budget remaining: ${remaining}")
 
 ### Step 7: Book Deals with Selected Sellers
 
-Submit booking requests for your selected packages. The bookings API runs the workflow in the background -- submit the brief and then poll for status.
+Submit booking requests for your selected packages. The bookings API runs the workflow in the background --- submit the brief and then poll for status.
 
 ```python
 import httpx
@@ -692,8 +692,8 @@ asyncio.run(multi_seller_workflow())
 
 ## Related
 
-- [Negotiation](negotiation.md) -- Detailed guide on negotiation strategies and manual step-by-step control
-- [Media Kit API](../api/media-kit.md) -- Full API reference for browsing seller inventory
-- [Bookings API](../api/bookings.md) -- Booking lifecycle and approval endpoints
-- [Authentication](../api/authentication.md) -- API key setup for authenticated access
-- [Seller Agent Guide](../integration/seller-agent.md) -- How to integrate with seller agents
+- [Negotiation](negotiation.md) --- Detailed guide on negotiation strategies and manual step-by-step control
+- [Media Kit API](../api/media-kit.md) --- Full API reference for browsing seller inventory
+- [Bookings API](../api/bookings.md) --- Booking lifecycle and approval endpoints
+- [Authentication](../api/authentication.md) --- API key setup for authenticated access
+- [Seller Agent Guide](../integration/seller-agent.md) --- How to integrate with seller agents

@@ -1,6 +1,6 @@
 # Sessions & Persistence
 
-Sessions enable **multi-turn conversations** between the buyer agent and seller agents. Rather than treating each API call as an isolated request, sessions maintain context across a sequence of messages -- allowing the buyer to browse inventory, negotiate pricing, and close deals within a single conversational thread.
+Sessions enable **multi-turn conversations** between the buyer agent and seller agents. Rather than treating each API call as an isolated request, sessions maintain context across a sequence of messages --- allowing the buyer to browse inventory, negotiate pricing, and close deals within a single conversational thread.
 
 ## Overview
 
@@ -33,7 +33,7 @@ The buyer agent uses two components for session management:
 
 | Component | Role |
 |-----------|------|
-| **SessionManager** | Orchestrates the session lifecycle -- creation, reuse, messaging, and closure |
+| **SessionManager** | Orchestrates the session lifecycle --- creation, reuse, messaging, and closure |
 | **SessionStore** | File-backed persistence layer that stores active sessions as JSON |
 
 ---
@@ -108,7 +108,7 @@ curl -X POST http://seller.example.com:8001/sessions \
 }
 ```
 
-The `SessionManager` automatically persists the returned session record to the `SessionStore`. Sessions follow a **7-day TTL** by default -- if the seller does not specify an `expires_at`, the manager uses its own 7-day fallback.
+The `SessionManager` automatically persists the returned session record to the `SessionStore`. Sessions follow a **7-day TTL** by default --- if the seller does not specify an `expires_at`, the manager uses its own 7-day fallback.
 
 ### Get or Create (Recommended)
 
@@ -163,7 +163,7 @@ If the seller returns a **404** (session not found or expired on the seller side
 2. Creates a new session with the seller
 3. Retries the message on the new session
 
-This means callers do not need to handle session expiry manually -- the manager recovers automatically.
+This means callers do not need to handle session expiry manually --- the manager recovers automatically.
 
 ```mermaid
 sequenceDiagram
@@ -198,7 +198,7 @@ await manager.close_session(
 
 **Seller endpoint:** `POST /sessions/{session_id}/close`
 
-This sends a close request to the seller and removes the session from the local store. If the close request fails (e.g., the session already expired on the seller side), the error is logged but not raised -- the local cleanup still occurs.
+This sends a close request to the seller and removes the session from the local store. If the close request fails (e.g., the session already expired on the seller side), the error is logged but not raised --- the local cleanup still occurs.
 
 ---
 
@@ -222,7 +222,7 @@ The `SessionStore` is the persistence backend, storing session records as a JSON
 
 ### How It Works
 
-- Sessions are keyed by **seller URL** -- one active session per seller
+- Sessions are keyed by **seller URL** --- one active session per seller
 - The store file is created automatically if it does not exist
 - Reads happen on initialization; writes happen on every save/remove
 - Expired sessions are retained in the file but filtered out by `get()`
@@ -310,9 +310,9 @@ stateDiagram-v2
 
 ### Typical Flow
 
-1. **Create** -- Call `get_or_create_session()` to establish a session with a seller
-2. **Converse** -- Send messages via `send_message()` for browsing, negotiation, or deal-making
-3. **Close** -- Call `close_session()` when the conversation is complete
+1. **Create** --- Call `get_or_create_session()` to establish a session with a seller
+2. **Converse** --- Send messages via `send_message()` for browsing, negotiation, or deal-making
+3. **Close** --- Call `close_session()` when the conversation is complete
 
 ### Expiry Handling
 
@@ -361,7 +361,7 @@ sequenceDiagram
     Buyer->>SM: close_session()
 ```
 
-The session provides **context continuity** -- the seller knows the full conversation history and can reference previous offers, counter-offers, and agreements without the buyer needing to resend them.
+The session provides **context continuity** --- the seller knows the full conversation history and can reference previous offers, counter-offers, and agreements without the buyer needing to resend them.
 
 ### How Sessions Relate to Other APIs
 
@@ -497,14 +497,14 @@ except RuntimeError as e:
 ```
 
 !!! note "Close is fire-and-forget"
-    `close_session()` never raises -- it logs a warning if the remote close fails and always cleans up the local store. This prevents cleanup errors from disrupting the caller's flow.
+    `close_session()` never raises --- it logs a warning if the remote close fails and always cleans up the local store. This prevents cleanup errors from disrupting the caller's flow.
 
 ---
 
 ## Related
 
-- [Seller Sessions API](https://iabtechlab.github.io/seller-agent/) -- Seller-side session endpoints (POST /sessions, GET /sessions, etc.)
-- [Authentication](authentication.md) -- Buyer identity setup for session creation
-- [Media Kit Discovery](media-kit.md) -- Browse seller inventory before starting a session
-- [Bookings](bookings.md) -- Campaign booking workflow
-- [Seller Agent Integration](../integration/seller-agent.md) -- Full integration guide
+- [Seller Sessions API](https://iabtechlab.github.io/seller-agent/) --- Seller-side session endpoints (POST /sessions, GET /sessions, etc.)
+- [Authentication](authentication.md) --- Buyer identity setup for session creation
+- [Media Kit Discovery](media-kit.md) --- Browse seller inventory before starting a session
+- [Bookings](bookings.md) --- Campaign booking workflow
+- [Seller Agent Integration](../integration/seller-agent.md) --- Full integration guide

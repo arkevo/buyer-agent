@@ -1,6 +1,6 @@
 # Deals API Client
 
-The `DealsClient` is the buyer's interface to the seller's **quote-then-book** deal endpoints. Instead of fabricating deal IDs client-side, the buyer requests a non-binding price quote from the seller, optionally negotiates, and then books a deal -- receiving a seller-issued Deal ID with OpenRTB activation parameters.
+The `DealsClient` is the buyer's interface to the seller's **quote-then-book** deal endpoints. Instead of fabricating deal IDs client-side, the buyer requests a non-binding price quote from the seller, optionally negotiates, and then books a deal --- receiving a seller-issued Deal ID with OpenRTB activation parameters.
 
 ## Overview
 
@@ -499,7 +499,7 @@ except DealsClientError as e:
 | Product not found | `404` | `not_found` | Raised immediately |
 
 !!! warning "Retry behavior"
-    Only 502, 503, and 504 status codes trigger automatic retries. Client errors (4xx) are never retried -- they indicate a problem with the request itself.
+    Only 502, 503, and 504 status codes trigger automatic retries. Client errors (4xx) are never retried --- they indicate a problem with the request itself.
 
 ### Seller Error Response
 
@@ -575,9 +575,9 @@ store.disconnect()
 
 ## Related
 
-- [Seller Quotes API](https://iabtechlab.github.io/seller-agent/api/quotes/) -- Seller-side quote endpoints
-- [Seller Orders API](https://iabtechlab.github.io/seller-agent/api/orders/) -- Seller-side deal/order endpoints
-- [Negotiation Guide](../guides/negotiation.md) -- How to negotiate pricing with sellers
-- [Media Kit Discovery](media-kit.md) -- Browse seller inventory before requesting quotes
-- [Bookings API](bookings.md) -- Campaign booking workflow (brief-based)
-- [Authentication](authentication.md) -- API key and token setup
+- [Seller Quotes API](https://iabtechlab.github.io/seller-agent/api/quotes/) --- Seller-side quote endpoints
+- [Seller Orders API](https://iabtechlab.github.io/seller-agent/api/orders/) --- Seller-side deal/order endpoints
+- [Negotiation Guide](../guides/negotiation.md) --- How to negotiate pricing with sellers
+- [Media Kit Discovery](media-kit.md) --- Browse seller inventory before requesting quotes
+- [Bookings API](bookings.md) --- Campaign booking workflow (brief-based)
+- [Authentication](authentication.md) --- API key and token setup

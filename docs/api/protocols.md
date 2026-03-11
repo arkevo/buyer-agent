@@ -18,13 +18,13 @@ The buyer agent supports **three protocols** for communicating with seller agent
 ## When to Use Which
 
 !!! tip "Decision guide"
-    **Use MCP** when you know exactly which operation to perform and want fast, predictable results. This covers the vast majority of automated workflows -- listing products, creating orders, booking line items.
+    **Use MCP** when you know exactly which operation to perform and want fast, predictable results. This covers the vast majority of automated workflows --- listing products, creating orders, booking line items.
 
     **Use A2A** when the request is ambiguous or benefits from interpretation. Examples: multi-criteria inventory searches expressed in natural language, complex negotiation exchanges where the seller's AI can reason about pricing, or exploratory discovery where you do not know the exact tool to call.
 
-    **Use REST (OpenDirect)** when integrating with systems that do not support MCP or A2A -- for example, existing dashboards, third-party DSP platforms, or legacy ad servers. The buyer's own REST API also uses this path internally to proxy requests from human operators.
+    **Use REST (OpenDirect)** when integrating with systems that do not support MCP or A2A --- for example, existing dashboards, third-party DSP platforms, or legacy ad servers. The buyer's own REST API also uses this path internally to proxy requests from human operators.
 
-Most buyers will use MCP exclusively and only reach for A2A in discovery or negotiation scenarios. The `UnifiedClient` makes switching trivial -- change a single `protocol` parameter.
+Most buyers will use MCP exclusively and only reach for A2A in discovery or negotiation scenarios. The `UnifiedClient` makes switching trivial --- change a single `protocol` parameter.
 
 ## UnifiedClient
 
@@ -46,8 +46,8 @@ await client.connect()
 result = await client.list_products()  # sends "List all available advertising products"
 ```
 
-- `Protocol.MCP` (default) -- executes tools directly via the MCP session. Fast and deterministic.
-- `Protocol.A2A` -- converts tool calls to natural language, sends them to the seller's AI agent. Slower but handles ambiguity.
+- `Protocol.MCP` (default) --- executes tools directly via the MCP session. Fast and deterministic.
+- `Protocol.A2A` --- converts tool calls to natural language, sends them to the seller's AI agent. Slower but handles ambiguity.
 
 ### Dual-Protocol Operation
 
@@ -136,8 +136,8 @@ Set via environment variables or `config/settings.py`.
 
 ## Related
 
-- [MCP Client](mcp-client.md) -- detailed MCP client usage
-- [A2A Client](a2a-client.md) -- detailed A2A client usage
-- [API Overview](overview.md) -- buyer REST API reference
+- [MCP Client](mcp-client.md) --- detailed MCP client usage
+- [A2A Client](a2a-client.md) --- detailed A2A client usage
+- [API Overview](overview.md) --- buyer REST API reference
 - [Seller MCP Documentation](https://iabtechlab.github.io/seller-agent/api/mcp/)
 - [Seller A2A Documentation](https://iabtechlab.github.io/seller-agent/api/a2a/)

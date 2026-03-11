@@ -6,9 +6,9 @@ The `DealStore` is the buyer agent's SQLite-backed persistence layer for deal li
 
 Without persistent storage, all deal state lives in memory and is lost on process restart. The DealStore solves three problems:
 
-- **Crash resilience** -- A server restart mid-negotiation no longer means lost deals. The buyer can resume from the last known state.
-- **Audit trail** -- Every status change and negotiation round is recorded in append-only tables. This supports post-campaign analysis and dispute resolution.
-- **Portfolio tracking** -- The buyer can query all active deals across sellers, filter by status, and calculate aggregate spend -- enabling informed budget allocation decisions.
+- **Crash resilience** --- A server restart mid-negotiation no longer means lost deals. The buyer can resume from the last known state.
+- **Audit trail** --- Every status change and negotiation round is recorded in append-only tables. This supports post-campaign analysis and dispute resolution.
+- **Portfolio tracking** --- The buyer can query all active deals across sellers, filter by status, and calculate aggregate spend --- enabling informed budget allocation decisions.
 
 !!! info "Synchronous by design"
     The DealStore uses synchronous `sqlite3` (not `aiosqlite`) because CrewAI runs flows in worker threads that may not have an asyncio event loop. Thread safety is provided by `check_same_thread=False` and a `threading.Lock()`.
@@ -523,11 +523,11 @@ store.connect()
 
 ---
 
-## Related Pages
+## Related
 
-- [Deals API Client](../api/deals.md) -- `DealsClient` methods, request/response models, and error handling
-- [Booking Flow](booking-flow.md) -- End-to-end sequence diagram for the `DealBookingFlow`
-- [Negotiation Guide](../guides/negotiation.md) -- How to negotiate pricing with sellers
-- [Models](models.md) -- Pydantic data model reference
-- [Seller Quotes API](https://iabtechlab.github.io/seller-agent/api/quotes/) -- Seller-side quote endpoints
-- [Seller Orders API](https://iabtechlab.github.io/seller-agent/api/orders/) -- Seller-side deal/order endpoints
+- [Deals API Client](../api/deals.md) --- `DealsClient` methods, request/response models, and error handling
+- [Booking Flow](booking-flow.md) --- End-to-end sequence diagram for the `DealBookingFlow`
+- [Negotiation Guide](../guides/negotiation.md) --- How to negotiate pricing with sellers
+- [Models](models.md) --- Pydantic data model reference
+- [Seller Quotes API](https://iabtechlab.github.io/seller-agent/api/quotes/) --- Seller-side quote endpoints
+- [Seller Orders API](https://iabtechlab.github.io/seller-agent/api/orders/) --- Seller-side deal/order endpoints
