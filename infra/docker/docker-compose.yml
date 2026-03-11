@@ -1,0 +1,43 @@
+# =============================================================================
+# Ad Buyer System — Local Development Stack
+# =============================================================================
+# Usage:
+#   docker compose up              # Start all services
+#   docker compose up -d           # Start in background
+#   docker compose logs -f app     # Follow app logs
+#   docker compose down -v         # Stop and remove volumes
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Application
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile
+    ports:
+      - "8001:8001"
+    env_file:
+      - ../../.env
+    environment:
+      DATABASE_URL: sqlite:///./data/ad_buyer.db
+    volumes:
+      - buyerdata:/app/data
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Seller Agent (optional — for end-to-end testing)
+  # ---------------------------------------------------------------------------
+  # Uncomment to run a seller agent alongside the buyer:
+  # seller:
+  #   image: ad-seller:latest
+  #   ports:
+  #     - "8000:8000"
+  #   env_file:
+  #     - ../../.env
+  #   environment:
+  #     STORAGE_TYPE: sqlite
+
+volumes:
+  buyerdata:

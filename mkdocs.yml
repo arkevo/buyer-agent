@@ -92,6 +92,7 @@ nav:
       - Campaign Pipeline: guides/campaign-pipeline.md
       - Budget Pacing: guides/budget-pacing.md
       - Creative Management: guides/creative-management.md
+      - Deployment: guides/deployment.md
   - Integration:
       - Seller Agent Guide: integration/seller-agent.md
       - OpenDirect Protocol: integration/opendirect.md

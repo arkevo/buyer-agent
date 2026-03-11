@@ -1,0 +1,9 @@
+# Copy this file to terraform.tfvars and fill in the values.
+
+environment         = "dev"
+region              = "us-east-1"
+vpc_cidr            = "10.0.0.0/16"
+container_image_tag = "latest"
+
+# ACM certificate ARN for HTTPS. Leave empty to use HTTP-only listener.
+certificate_arn = ""

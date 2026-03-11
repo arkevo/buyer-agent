@@ -182,6 +182,17 @@ curl -X POST http://localhost:8000/products/search \
 
 → [Quickstart Guide](https://iabtechlab.github.io/buyer-agent/getting-started/quickstart/)
 
+### Docker
+
+Run in a container with Docker Compose:
+
+```bash
+cd infra/docker
+docker compose up
+```
+
+→ [Deployment Guide](https://iabtechlab.github.io/buyer-agent/guides/deployment/)
+
 ## API Reference
 
 7 endpoints across 3 groups:
