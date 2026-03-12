@@ -29,7 +29,10 @@ def load_issues():
         for line in f:
             line = line.strip()
             if line:
-                issues.append(json.loads(line))
+                issue = json.loads(line)
+                if issue.get("status") == "tombstone":
+                    continue
+                issues.append(issue)
     return issues
 
 
