@@ -181,9 +181,9 @@ The linear TV implementation is designed for compatibility with the [TIP](https:
 
 This alignment means linear TV deals booked through the buyer agent can integrate with TIP-compliant trafficking and billing systems downstream.
 
-## Hybrid Approach (Option C)
+## How It Works: Hybrid Media Type Handling
 
-The buyer agent uses a **hybrid approach** for media type handling: the core quote-then-book flow (quotes, negotiation, booking) remains media-type-agnostic, while media-type-specific parameters are passed through the `linear_tv_params` extension field. This means:
+Linear TV is treated as a special case of the standard deal flow rather than a separate system. The core quote-then-book flow (quotes, negotiation, booking) remains media-type-agnostic, while media-type-specific parameters are passed through the `linear_tv_params` extension field. This means:
 
 - The `DealsClient` API is the same regardless of media type
 - Linear TV-specific validation (daypart values, DMA codes, spot lengths) is applied contextually when `media_type` is `"linear_tv"`

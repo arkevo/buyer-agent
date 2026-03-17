@@ -44,7 +44,7 @@ The planned orchestration flow extends the existing multi-seller workflow:
 
 - **Concurrent seller engagement** — Engage N sellers in parallel with configurable concurrency (default: 5 concurrent)
 - **Cross-seller intelligence** — Negotiation strategies informed by the full competitive landscape, not just the current seller
-- **CompetitiveStrategy integration** — The planned [CompetitiveStrategy](negotiation.md#competitivestrategy-coming-soon) leverages multi-seller context for harder bargains
+- **CompetitiveStrategy integration** — The planned [CompetitiveStrategy](negotiation.md#competitivestrategy) leverages multi-seller context for harder bargains
 - **Portfolio constraints** — Enforce minimum/maximum deals per seller, per channel, and per DMA
 - **Seller performance tracking** — Track historical win rates, delivery rates, and pricing trends per seller
 - **Graceful degradation** — If a seller is unreachable or rejects a booking, the orchestrator reallocates to remaining sellers

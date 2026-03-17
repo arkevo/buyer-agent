@@ -2,6 +2,8 @@
 
 The buyer agent uses a three-level agent hierarchy powered by [CrewAI](https://www.crewai.com/). Each level has a distinct responsibility: strategic orchestration, channel-specific expertise, and functional execution.
 
+Three levels exist because advertising campaigns require decisions at three different scopes. A single agent cannot efficiently reason about both portfolio-wide budget strategy and the mechanics of reserving a line item --- the context windows, LLM costs, and failure modes are fundamentally different at each scope. By separating strategic reasoning (Level 1) from channel expertise (Level 2) and task execution (Level 3), the system keeps each agent focused on a narrow responsibility, reduces per-call token cost by using smaller models where appropriate, and allows channel specialists to run in parallel without blocking the portfolio-level plan.
+
 ## Overview
 
 ```mermaid

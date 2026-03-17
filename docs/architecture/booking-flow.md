@@ -1,6 +1,8 @@
-# Booking Flow
+# Booking Flow (DealBookingFlow Internals)
 
-The `DealBookingFlow` is a CrewAI event-driven flow that orchestrates the end-to-end booking process. It is defined in `flows/deal_booking_flow.py` and extends `Flow[BookingState]`.
+The `DealBookingFlow` is a CrewAI event-driven flow that orchestrates the end-to-end booking process. It is defined in `flows/deal_booking_flow.py` and extends `Flow[BookingState]`. This page documents the internal mechanics of that flow --- if you are looking for a high-level overview of how campaigns move from brief to booked deal, start with the [Buyer Guide Overview](../guides/overview.md).
+
+At a high level, the flow works in four phases. First, it **validates** the incoming campaign brief and builds an audience plan. Second, it **allocates** the total budget across advertising channels (branding, CTV, mobile, performance). Third, it **researches** inventory in parallel across all active channels, optionally negotiating pricing with the seller. Fourth, it **consolidates** recommendations, pauses for human approval (unless auto-approve is enabled), and executes the final bookings against the seller's OpenDirect API.
 
 ## Sequence Diagram
 
