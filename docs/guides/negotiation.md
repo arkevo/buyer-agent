@@ -1,5 +1,7 @@
 # Negotiation
 
+Not every price is final. When the buyer has Agency or Advertiser tier access, it can negotiate with the seller before committing to a booking. Negotiation sits between inventory research and order execution in the overall buyer workflow --- the agent has already identified what it wants to buy, and now works to get a better price before the deal is booked.
+
 The buyer agent includes a pluggable negotiation module for multi-turn price negotiation with seller agents. You can run fully automatic negotiations or drive them step-by-step.
 
 !!! info "Tier Requirement"
@@ -66,26 +68,19 @@ strategy = SimpleThresholdStrategy(
 | Balanced | $20 | $30 | $2 | 5 | Moderate flexibility |
 | Aggressive | $15 | $35 | $5 | 10 | Wide range, big concessions, persistent |
 
-### AdaptiveStrategy (Coming Soon)
+### AdaptiveStrategy
 
-Adjusts concession behavior based on observed seller patterns. The adaptive strategy tracks the seller's concession magnitude across rounds and modulates the buyer's response accordingly:
+Adjusts concession behavior dynamically based on observed seller patterns --- if the seller is conceding aggressively, the buyer holds firm; if the seller holds firm, the buyer concedes faster to avoid stalemate.
 
-- **Seller conceding aggressively** — Hold firm. If the seller is dropping price by large increments, the buyer reduces its own concession step to capture more of the surplus.
-- **Seller holding firm** — Concede faster. If the seller is barely moving, the buyer increases its concession step to avoid a stalemate and reach agreement sooner.
-- **Seller pattern shift** — Re-calibrate. If the seller changes behavior mid-negotiation (e.g., switches from firm to aggressive after round 3), the strategy adapts within the same session.
+!!! info "Coming Soon"
+    AdaptiveStrategy implements the same `NegotiationStrategy` interface and will be a drop-in replacement for `SimpleThresholdStrategy`.
 
-The adaptive strategy is planned as part of Phase 2 (buyer-llu). It will implement the same `NegotiationStrategy` interface as `SimpleThresholdStrategy`, so it can be used as a drop-in replacement in `auto_negotiate()` or manual step-by-step flows.
+### CompetitiveStrategy
 
-### CompetitiveStrategy (Coming Soon)
+Uses cross-seller intelligence to drive harder bargains when the buyer is shopping multiple sellers simultaneously, leveraging competing quotes as anchor points for negotiation.
 
-Strategy for when the buyer is shopping multiple sellers simultaneously via [Multi-Seller Orchestration](multi-seller-orchestration.md). The competitive strategy uses cross-seller intelligence to drive harder bargains:
-
-- **Quote benchmarking** — Uses the best quote received from other sellers as an anchor point, countering above that floor rather than the buyer's internal target
-- **Walk-away credibility** — Willing to walk away from a seller when a comparable deal exists elsewhere, making the walk-away threat credible rather than a bluff
-- **Last-look leverage** — Gives each seller a "last look" opportunity to beat the best competing offer before the buyer commits elsewhere
-- **Portfolio awareness** — Factors in the buyer's total portfolio needs (e.g., if CTV inventory is scarce across sellers, compete less aggressively on CTV and focus competitive pressure on display)
-
-The competitive strategy is planned as part of Phase 2 (buyer-8ih). It requires the [Multi-Seller Orchestration](multi-seller-orchestration.md) capability to provide the cross-seller context.
+!!! info "Coming Soon"
+    CompetitiveStrategy requires the [Multi-Seller Orchestration](multi-seller-orchestration.md) capability to provide cross-seller context.
 
 ## Auto-Negotiate
 
@@ -196,7 +191,7 @@ The `NegotiationContext` provides:
 | `seller_previous_price` | `float?` | Seller's price from the round before last |
 | `started_at` | `datetime` | When the negotiation started |
 
-## Data Models
+## Reference: Data Models
 
 ### NegotiationResult
 

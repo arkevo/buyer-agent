@@ -1,5 +1,7 @@
 # Bookings API
 
+A **booking** is the buyer agent's end-to-end process of turning a campaign brief into confirmed advertising deals. You submit a brief describing your campaign objectives, budget, audience, and timeline; the buyer agent allocates budget across channels, researches inventory from connected sellers, optionally negotiates pricing, and presents recommendations for your approval. Once approved, the agent books confirmed line items via the seller's OpenDirect API. Use these endpoints to start a booking, poll its progress, and approve or reject the resulting recommendations.
+
 The bookings endpoints manage the full campaign booking lifecycle --- from brief submission through approval to deal execution.
 
 ## Status Lifecycle

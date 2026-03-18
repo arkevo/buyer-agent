@@ -2,6 +2,20 @@
 
 The buyer agent provides 13 tools that agents use to interact with sellers, plan audiences, execute bookings, and retrieve performance data. All tools extend CrewAI's `BaseTool` and expose both synchronous (`_run`) and asynchronous (`_arun`) interfaces.
 
+Tools are how AI agents take action in the real world. While agents reason about strategy and make decisions, tools are the concrete operations they invoke --- searching a seller's product catalog, checking inventory availability, or confirming a booking. Each tool wraps a single, well-defined API call so that agents do not need to construct raw HTTP requests. Tools fall into four categories: **Audience** (understanding who to target), **Research** (finding what to buy), **DSP** (obtaining Deal IDs for programmatic activation), and **Execution** (placing and confirming orders).
+
+### Typical Tool Flow
+
+In a standard booking, tools are used in this order:
+
+```
+1. AudienceDiscovery / AudienceMatching / CoverageEstimation  (plan audience)
+2. ProductSearch / AvailsCheck                                  (find inventory)
+3. DiscoverInventory / GetPricing / RequestDeal                 (DSP deal path, if applicable)
+4. CreateOrder → CreateLine → ReserveLine → BookLine            (execute booking)
+5. GetStats                                                     (monitor delivery, coming soon)
+```
+
 ## Tool Categories
 
 ```mermaid

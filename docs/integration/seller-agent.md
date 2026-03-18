@@ -1,5 +1,7 @@
 # Seller Agent Integration
 
+The buyer agent does not operate in isolation --- it needs at least one seller agent to provide advertising inventory. This page explains how to configure the buyer to connect to a seller, what API calls flow between them during a booking, and how authentication and multi-seller discovery work. If you are setting up the buyer for the first time, start with the [Quickstart](../getting-started/quickstart.md) and return here when you are ready to customize the seller connection.
+
 The buyer agent connects to one or more seller agents to search inventory, check availability, negotiate pricing, and book deals using the IAB [OpenDirect](https://iabtechlab.com/standards/opendirect/) 2.1 protocol.
 
 ## Connection Configuration

@@ -2,6 +2,24 @@
 
 All models are Pydantic v2 classes. The buyer agent uses two model families: API request/response models defined in `interfaces/api/main.py`, and domain models defined in `models/flow_state.py` and `models/opendirect.py`.
 
+The two families serve different audiences. **API models** define the contract between external callers and the buyer's FastAPI endpoints --- you encounter these when submitting a campaign brief or polling for booking status. **Domain models** represent the internal state of a booking flow and the OpenDirect objects exchanged with seller agents --- you encounter these when extending the flow logic, writing custom strategies, or debugging a booking in progress. If you are integrating with the buyer as a client, start with the API Models section. If you are developing inside the buyer codebase, start with Flow State Models.
+
+### Model Map
+
+The diagram below shows when each model family appears during a typical booking.
+
+```
+External caller                     Buyer internals                     Seller agent
+─────────────                       ───────────────                     ────────────
+BookingRequest ──POST /bookings──►  BookingState (created)
+                                    ChannelAllocation (budget split)
+                                    ProductRecommendation (research)
+BookingStatus  ◄─GET /bookings────
+ApprovalRequest─POST .../approve─►
+                                    BookedLine (execution)  ──────────► Order, Line, Product
+BookingStatus  ◄─GET /bookings────  (completed)
+```
+
 ## API Models
 
 Defined in `interfaces/api/main.py`:

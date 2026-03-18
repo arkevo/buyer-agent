@@ -1,5 +1,7 @@
 # OpenDirect Protocol
 
+When the buyer agent books a deal, it speaks OpenDirect --- the industry-standard protocol that defines how orders, line items, and creatives flow between a buyer and a seller. Understanding OpenDirect is useful if you need to debug a booking that stalled mid-lifecycle, extend the buyer's booking logic, or integrate the buyer with a seller that implements OpenDirect differently. If you just want to submit a campaign and get deals booked, the [Bookings API](../api/bookings.md) handles the OpenDirect mechanics for you.
+
 The buyer agent implements the [IAB OpenDirect 2.1](https://iabtechlab.com/standards/opendirect/) protocol for automated direct deal booking between buyers and sellers.
 
 ## What Is OpenDirect?
