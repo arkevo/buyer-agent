@@ -73,6 +73,30 @@ class DealStore:
     # Deals
     # ------------------------------------------------------------------
 
+    # All v2 intrinsic column names on the deals table, used to build
+    # dynamic INSERT statements when v2 kwargs are provided.
+    _V2_DEAL_COLUMNS = (
+        # Counterparty fields
+        "display_name", "description", "buyer_org", "buyer_id",
+        "seller_org", "seller_id", "seller_domain", "seller_type",
+        # Pricing detail fields
+        "price_model", "bid_floor_cpm", "fixed_price_cpm",
+        "cpp", "guaranteed_grps", "currency", "fee_transparency",
+        # Inventory targeting fields
+        "media_type", "formats", "content_categories",
+        "publisher_domains", "geo_targets", "dayparts",
+        "programs", "networks", "audience_segments", "estimated_volume",
+        # Lifecycle extensions
+        "deprecated_at", "deprecated_reason", "parent_deal_id",
+        # Supply chain fields
+        "schain_complete", "schain_nodes", "sellers_json_url",
+        "is_direct", "hop_count", "inventory_fingerprint",
+        # Linear TV fields
+        "makegood_provisions", "cancellation_window",
+        "audience_guarantee", "preemption_rights",
+        "agency_of_record_status",
+    )
+
     def save_deal(
         self,
         *,
@@ -90,15 +114,66 @@ class DealStore:
         flight_end: Optional[str] = None,
         buyer_context: Optional[str] = None,
         metadata: Optional[str] = None,
+        # v2 counterparty fields
+        display_name: Optional[str] = None,
+        description: Optional[str] = None,
+        buyer_org: Optional[str] = None,
+        buyer_id: Optional[str] = None,
+        seller_org: Optional[str] = None,
+        seller_id: Optional[str] = None,
+        seller_domain: Optional[str] = None,
+        seller_type: Optional[str] = None,
+        # v2 pricing detail fields
+        price_model: Optional[str] = None,
+        bid_floor_cpm: Optional[float] = None,
+        fixed_price_cpm: Optional[float] = None,
+        cpp: Optional[float] = None,
+        guaranteed_grps: Optional[float] = None,
+        currency: Optional[str] = None,
+        fee_transparency: Optional[float] = None,
+        # v2 inventory targeting fields
+        media_type: Optional[str] = None,
+        formats: Optional[str] = None,
+        content_categories: Optional[str] = None,
+        publisher_domains: Optional[str] = None,
+        geo_targets: Optional[str] = None,
+        dayparts: Optional[str] = None,
+        programs: Optional[str] = None,
+        networks: Optional[str] = None,
+        audience_segments: Optional[str] = None,
+        estimated_volume: Optional[int] = None,
+        # v2 lifecycle extensions
+        deprecated_at: Optional[str] = None,
+        deprecated_reason: Optional[str] = None,
+        parent_deal_id: Optional[str] = None,
+        # v2 supply chain fields
+        schain_complete: Optional[int] = None,
+        schain_nodes: Optional[str] = None,
+        sellers_json_url: Optional[str] = None,
+        is_direct: Optional[int] = None,
+        hop_count: Optional[int] = None,
+        inventory_fingerprint: Optional[str] = None,
+        # v2 linear TV fields
+        makegood_provisions: Optional[str] = None,
+        cancellation_window: Optional[str] = None,
+        audience_guarantee: Optional[str] = None,
+        preemption_rights: Optional[str] = None,
+        agency_of_record_status: Optional[str] = None,
     ) -> str:
         """Insert a new deal.
+
+        Accepts all v1 fields plus optional v2 intrinsic fields for the
+        deal library (counterparty, pricing detail, inventory targeting,
+        lifecycle, supply chain, and linear TV fields).  Backward
+        compatible: callers using only v1 fields continue to work
+        unchanged.
 
         Args:
             deal_id: Optional UUID. Generated if not provided.
             seller_url: Seller endpoint URL.
             product_id: Product being dealt on.
             product_name: Human-readable product name.
-            deal_type: PG, PD, or PA.
+            deal_type: PG, PD, PA, OPEN_AUCTION, UPFRONT, or SCATTER.
             status: Initial status (default ``draft``).
             seller_deal_id: Seller-assigned deal ID (may be None initially).
             price: Current/final CPM.
@@ -108,6 +183,45 @@ class DealStore:
             flight_end: ISO date string.
             buyer_context: JSON-serialized BuyerContext.
             metadata: JSON string for extensible fields.
+            display_name: Human-readable deal name (v2).
+            description: Deal description (v2).
+            buyer_org: Buyer organization name (v2).
+            buyer_id: Buyer seat ID (v2).
+            seller_org: Seller organization name (v2).
+            seller_id: Seller account ID (v2).
+            seller_domain: Seller domain, e.g. ``espn.com`` (v2).
+            seller_type: PUBLISHER, SSP, DSP, or INTERMEDIARY (v2).
+            price_model: CPM, CPP, FLAT, or HYBRID (v2).
+            bid_floor_cpm: Minimum CPM for auction deals (v2).
+            fixed_price_cpm: Fixed CPM for PG/PD deals (v2).
+            cpp: Cost Per Point for linear TV (v2).
+            guaranteed_grps: Guaranteed GRPs for linear TV (v2).
+            currency: ISO 4217 currency code (v2).
+            fee_transparency: Estimated intermediary fees (v2).
+            media_type: DIGITAL, CTV, LINEAR_TV, AUDIO, or DOOH (v2).
+            formats: JSON array of format strings (v2).
+            content_categories: JSON array of IAB category IDs (v2).
+            publisher_domains: JSON array of publisher domains (v2).
+            geo_targets: JSON array of geo targets (v2).
+            dayparts: JSON array of daypart strings (v2).
+            programs: JSON array of program names (v2).
+            networks: JSON array of network names (v2).
+            audience_segments: JSON array of audience segment IDs (v2).
+            estimated_volume: Estimated daily/weekly impressions (v2).
+            deprecated_at: ISO timestamp when deprecated (v2).
+            deprecated_reason: Why the deal was deprecated (v2).
+            parent_deal_id: ID of deal this was cloned/migrated from (v2).
+            schain_complete: 1 if full supply chain is known (v2).
+            schain_nodes: JSON array of schain nodes (v2).
+            sellers_json_url: URL to seller's sellers.json (v2).
+            is_direct: 1 if direct relationship (v2).
+            hop_count: Number of intermediaries (v2).
+            inventory_fingerprint: Canonical inventory identifier (v2).
+            makegood_provisions: Makegood terms for linear TV (v2).
+            cancellation_window: Cancellation terms for linear TV (v2).
+            audience_guarantee: Audience guarantee for linear TV (v2).
+            preemption_rights: Preemption terms for linear TV (v2).
+            agency_of_record_status: Agency of record for linear TV (v2).
 
         Returns:
             The deal ID (generated or provided).
@@ -116,32 +230,66 @@ class DealStore:
             deal_id = str(uuid.uuid4())
         now = _now_iso()
 
+        # Build column list and values dynamically to include v2 fields
+        # when provided.  Start with the v1 columns that are always present.
+        columns = [
+            "id", "seller_url", "seller_deal_id", "product_id",
+            "product_name", "deal_type", "status", "price",
+            "original_price", "impressions", "flight_start", "flight_end",
+            "buyer_context", "metadata", "created_at", "updated_at",
+        ]
+        values: list[Any] = [
+            deal_id, seller_url, seller_deal_id, product_id,
+            product_name, deal_type, status, price,
+            original_price, impressions, flight_start, flight_end,
+            buyer_context, metadata or "{}", now, now,
+        ]
+
+        # Collect v2 kwargs into a dict for dynamic column building.
+        v2_locals = {
+            "display_name": display_name, "description": description,
+            "buyer_org": buyer_org, "buyer_id": buyer_id,
+            "seller_org": seller_org, "seller_id": seller_id,
+            "seller_domain": seller_domain, "seller_type": seller_type,
+            "price_model": price_model, "bid_floor_cpm": bid_floor_cpm,
+            "fixed_price_cpm": fixed_price_cpm, "cpp": cpp,
+            "guaranteed_grps": guaranteed_grps, "currency": currency,
+            "fee_transparency": fee_transparency,
+            "media_type": media_type, "formats": formats,
+            "content_categories": content_categories,
+            "publisher_domains": publisher_domains,
+            "geo_targets": geo_targets, "dayparts": dayparts,
+            "programs": programs, "networks": networks,
+            "audience_segments": audience_segments,
+            "estimated_volume": estimated_volume,
+            "deprecated_at": deprecated_at,
+            "deprecated_reason": deprecated_reason,
+            "parent_deal_id": parent_deal_id,
+            "schain_complete": schain_complete,
+            "schain_nodes": schain_nodes,
+            "sellers_json_url": sellers_json_url,
+            "is_direct": is_direct, "hop_count": hop_count,
+            "inventory_fingerprint": inventory_fingerprint,
+            "makegood_provisions": makegood_provisions,
+            "cancellation_window": cancellation_window,
+            "audience_guarantee": audience_guarantee,
+            "preemption_rights": preemption_rights,
+            "agency_of_record_status": agency_of_record_status,
+        }
+
+        for col in self._V2_DEAL_COLUMNS:
+            val = v2_locals.get(col)
+            if val is not None:
+                columns.append(col)
+                values.append(val)
+
+        placeholders = ", ".join("?" for _ in columns)
+        col_names = ", ".join(columns)
+
         with self._lock:
             self._conn.execute(
-                """INSERT INTO deals
-                   (id, seller_url, seller_deal_id, product_id, product_name,
-                    deal_type, status, price, original_price, impressions,
-                    flight_start, flight_end, buyer_context, metadata,
-                    created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (
-                    deal_id,
-                    seller_url,
-                    seller_deal_id,
-                    product_id,
-                    product_name,
-                    deal_type,
-                    status,
-                    price,
-                    original_price,
-                    impressions,
-                    flight_start,
-                    flight_end,
-                    buyer_context,
-                    metadata or "{}",
-                    now,
-                    now,
-                ),
+                f"INSERT INTO deals ({col_names}) VALUES ({placeholders})",
+                values,
             )
             self._conn.commit()
 
@@ -179,14 +327,26 @@ class DealStore:
         status: Optional[str] = None,
         seller_url: Optional[str] = None,
         created_after: Optional[str] = None,
+        media_type: Optional[str] = None,
+        seller_domain: Optional[str] = None,
+        deal_type: Optional[str] = None,
+        advertiser_id: Optional[str] = None,
         limit: int = 50,
     ) -> list[dict[str, Any]]:
         """List deals with optional filters.
+
+        Supports v1 filters (status, seller_url, created_after) and v2
+        filters (media_type, seller_domain, deal_type, advertiser_id).
+        The advertiser_id filter performs a JOIN to portfolio_metadata.
 
         Args:
             status: Filter by deal status.
             seller_url: Filter by seller URL.
             created_after: ISO timestamp lower bound.
+            media_type: Filter by media type (v2).
+            seller_domain: Filter by seller domain (v2).
+            deal_type: Filter by deal type (v2).
+            advertiser_id: Filter by advertiser ID via portfolio_metadata (v2).
             limit: Maximum rows to return.
 
         Returns:
@@ -194,22 +354,46 @@ class DealStore:
         """
         clauses: list[str] = []
         params: list[Any] = []
+        needs_join = False
 
         if status is not None:
-            clauses.append("status = ?")
+            clauses.append("d.status = ?")
             params.append(status)
         if seller_url is not None:
-            clauses.append("seller_url = ?")
+            clauses.append("d.seller_url = ?")
             params.append(seller_url)
         if created_after is not None:
-            clauses.append("created_at > ?")
+            clauses.append("d.created_at > ?")
             params.append(created_after)
+        if media_type is not None:
+            clauses.append("d.media_type = ?")
+            params.append(media_type)
+        if seller_domain is not None:
+            clauses.append("d.seller_domain = ?")
+            params.append(seller_domain)
+        if deal_type is not None:
+            clauses.append("d.deal_type = ?")
+            params.append(deal_type)
+        if advertiser_id is not None:
+            clauses.append("pm.advertiser_id = ?")
+            params.append(advertiser_id)
+            needs_join = True
 
         where = ""
         if clauses:
             where = "WHERE " + " AND ".join(clauses)
 
-        query = f"SELECT * FROM deals {where} ORDER BY created_at DESC LIMIT ?"
+        if needs_join:
+            query = (
+                f"SELECT d.* FROM deals d "
+                f"JOIN portfolio_metadata pm ON pm.deal_id = d.id "
+                f"{where} ORDER BY d.created_at DESC LIMIT ?"
+            )
+        else:
+            query = (
+                f"SELECT d.* FROM deals d "
+                f"{where} ORDER BY d.created_at DESC LIMIT ?"
+            )
         params.append(limit)
 
         with self._lock:
@@ -748,6 +932,337 @@ class DealStore:
             )
             rows = cursor.fetchall()
         return [dict(r) for r in rows]
+
+    # ------------------------------------------------------------------
+    # Portfolio Metadata (v2)
+    # ------------------------------------------------------------------
+
+    def save_portfolio_metadata(
+        self,
+        *,
+        deal_id: str,
+        import_source: Optional[str] = None,
+        import_date: Optional[str] = None,
+        tags: Optional[str] = None,
+        advertiser_id: Optional[str] = None,
+        agency_id: Optional[str] = None,
+    ) -> int:
+        """Insert a portfolio metadata record for a deal.
+
+        Args:
+            deal_id: FK to deals.
+            import_source: How the deal was imported (CSV, MANUAL, TTD_API, etc.).
+            import_date: ISO date when the deal was imported.
+            tags: JSON array of user-defined tags.
+            advertiser_id: Advertiser this deal belongs to.
+            agency_id: Agency managing this deal.
+
+        Returns:
+            The auto-generated row ID.
+        """
+        with self._lock:
+            cursor = self._conn.execute(
+                """INSERT INTO portfolio_metadata
+                   (deal_id, import_source, import_date, tags,
+                    advertiser_id, agency_id)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (deal_id, import_source, import_date, tags,
+                 advertiser_id, agency_id),
+            )
+            self._conn.commit()
+            return cursor.lastrowid
+
+    def get_portfolio_metadata(self, deal_id: str) -> Optional[dict[str, Any]]:
+        """Get portfolio metadata for a deal.
+
+        Args:
+            deal_id: The deal to query.
+
+        Returns:
+            Metadata as a dict, or None if not found.
+        """
+        with self._lock:
+            cursor = self._conn.execute(
+                "SELECT * FROM portfolio_metadata WHERE deal_id = ?",
+                (deal_id,),
+            )
+            row = cursor.fetchone()
+        return dict(row) if row else None
+
+    def update_portfolio_metadata(self, deal_id: str, **kwargs: Any) -> bool:
+        """Update specific fields on a deal's portfolio metadata.
+
+        Args:
+            deal_id: The deal whose metadata to update.
+            **kwargs: Column-value pairs to update. Only known columns
+                (import_source, import_date, tags, advertiser_id,
+                agency_id) are accepted.
+
+        Returns:
+            True if a row was updated, False if no metadata exists for
+            the deal or no valid kwargs were provided.
+        """
+        allowed = {"import_source", "import_date", "tags",
+                    "advertiser_id", "agency_id"}
+        updates = {k: v for k, v in kwargs.items() if k in allowed}
+        if not updates:
+            return False
+
+        set_clause = ", ".join(f"{col} = ?" for col in updates)
+        values = list(updates.values())
+        values.append(deal_id)
+
+        with self._lock:
+            cursor = self._conn.execute(
+                f"UPDATE portfolio_metadata SET {set_clause} WHERE deal_id = ?",
+                values,
+            )
+            self._conn.commit()
+            return cursor.rowcount > 0
+
+    def delete_portfolio_metadata(self, deal_id: str) -> bool:
+        """Delete portfolio metadata for a deal.
+
+        Args:
+            deal_id: The deal whose metadata to delete.
+
+        Returns:
+            True if a row was deleted, False if no metadata existed.
+        """
+        with self._lock:
+            cursor = self._conn.execute(
+                "DELETE FROM portfolio_metadata WHERE deal_id = ?",
+                (deal_id,),
+            )
+            self._conn.commit()
+            return cursor.rowcount > 0
+
+    # ------------------------------------------------------------------
+    # Deal Activations (v2)
+    # ------------------------------------------------------------------
+
+    def save_deal_activation(
+        self,
+        *,
+        deal_id: str,
+        platform: str,
+        platform_deal_id: Optional[str] = None,
+        activation_status: Optional[str] = None,
+        last_sync_at: Optional[str] = None,
+    ) -> int:
+        """Insert a deal activation record.
+
+        Args:
+            deal_id: FK to deals.
+            platform: Platform name (TTD, DV360, XANDR, AMAZON_DSP, DIRECT).
+            platform_deal_id: Deal ID on the platform.
+            activation_status: ACTIVE, PAUSED, PENDING, or ERROR.
+            last_sync_at: ISO timestamp of last sync.
+
+        Returns:
+            The auto-generated row ID.
+        """
+        with self._lock:
+            cursor = self._conn.execute(
+                """INSERT INTO deal_activations
+                   (deal_id, platform, platform_deal_id,
+                    activation_status, last_sync_at)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (deal_id, platform, platform_deal_id,
+                 activation_status, last_sync_at),
+            )
+            self._conn.commit()
+            return cursor.lastrowid
+
+    def get_deal_activations(self, deal_id: str) -> list[dict[str, Any]]:
+        """Get all activations for a deal.
+
+        Args:
+            deal_id: The deal to query.
+
+        Returns:
+            List of activation dicts.
+        """
+        with self._lock:
+            cursor = self._conn.execute(
+                "SELECT * FROM deal_activations WHERE deal_id = ?",
+                (deal_id,),
+            )
+            rows = cursor.fetchall()
+        return [dict(r) for r in rows]
+
+    def update_deal_activation(self, activation_id: int, **kwargs: Any) -> bool:
+        """Update specific fields on a deal activation.
+
+        Args:
+            activation_id: The activation row ID to update.
+            **kwargs: Column-value pairs to update. Only known columns
+                (platform, platform_deal_id, activation_status,
+                last_sync_at) are accepted.
+
+        Returns:
+            True if a row was updated, False if the activation was not
+            found or no valid kwargs were provided.
+        """
+        allowed = {"platform", "platform_deal_id", "activation_status",
+                    "last_sync_at"}
+        updates = {k: v for k, v in kwargs.items() if k in allowed}
+        if not updates:
+            return False
+
+        set_clause = ", ".join(f"{col} = ?" for col in updates)
+        values = list(updates.values())
+        values.append(activation_id)
+
+        with self._lock:
+            cursor = self._conn.execute(
+                f"UPDATE deal_activations SET {set_clause} WHERE id = ?",
+                values,
+            )
+            self._conn.commit()
+            return cursor.rowcount > 0
+
+    def delete_deal_activation(self, activation_id: int) -> bool:
+        """Delete a deal activation by ID.
+
+        Args:
+            activation_id: The activation row ID to delete.
+
+        Returns:
+            True if a row was deleted, False if not found.
+        """
+        with self._lock:
+            cursor = self._conn.execute(
+                "DELETE FROM deal_activations WHERE id = ?",
+                (activation_id,),
+            )
+            self._conn.commit()
+            return cursor.rowcount > 0
+
+    # ------------------------------------------------------------------
+    # Performance Cache (v2)
+    # ------------------------------------------------------------------
+
+    def save_performance_cache(
+        self,
+        *,
+        deal_id: str,
+        impressions_delivered: Optional[int] = None,
+        spend_to_date: Optional[float] = None,
+        fill_rate: Optional[float] = None,
+        win_rate: Optional[float] = None,
+        avg_effective_cpm: Optional[float] = None,
+        last_delivery_at: Optional[str] = None,
+        performance_trend: Optional[str] = None,
+        cached_at: Optional[str] = None,
+    ) -> int:
+        """Insert a performance cache entry for a deal.
+
+        Args:
+            deal_id: FK to deals.
+            impressions_delivered: Total impressions delivered.
+            spend_to_date: Total spend.
+            fill_rate: Fill rate (0.0-1.0).
+            win_rate: Win rate (0.0-1.0).
+            avg_effective_cpm: Average effective CPM.
+            last_delivery_at: ISO timestamp of last delivery.
+            performance_trend: IMPROVING, STABLE, DECLINING, or NO_DATA.
+            cached_at: ISO timestamp when this cache entry was created.
+
+        Returns:
+            The auto-generated row ID.
+        """
+        with self._lock:
+            cursor = self._conn.execute(
+                """INSERT INTO performance_cache
+                   (deal_id, impressions_delivered, spend_to_date,
+                    fill_rate, win_rate, avg_effective_cpm,
+                    last_delivery_at, performance_trend, cached_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (deal_id, impressions_delivered, spend_to_date,
+                 fill_rate, win_rate, avg_effective_cpm,
+                 last_delivery_at, performance_trend, cached_at),
+            )
+            self._conn.commit()
+            return cursor.lastrowid
+
+    def get_performance_cache(self, deal_id: str) -> Optional[dict[str, Any]]:
+        """Get the latest performance cache entry for a deal.
+
+        Args:
+            deal_id: The deal to query.
+
+        Returns:
+            Performance data as a dict, or None if not found.
+        """
+        with self._lock:
+            cursor = self._conn.execute(
+                """SELECT * FROM performance_cache
+                   WHERE deal_id = ?
+                   ORDER BY id DESC LIMIT 1""",
+                (deal_id,),
+            )
+            row = cursor.fetchone()
+        return dict(row) if row else None
+
+    def update_performance_cache(self, deal_id: str, **kwargs: Any) -> bool:
+        """Update the latest performance cache entry for a deal.
+
+        Updates the most recently inserted cache row for the given
+        deal_id.  Functions as an upsert-style update by deal_id.
+
+        Args:
+            deal_id: The deal whose cache to update.
+            **kwargs: Column-value pairs to update. Only known columns
+                (impressions_delivered, spend_to_date, fill_rate,
+                win_rate, avg_effective_cpm, last_delivery_at,
+                performance_trend, cached_at) are accepted.
+
+        Returns:
+            True if a row was updated, False if no cache exists for
+            the deal or no valid kwargs were provided.
+        """
+        allowed = {"impressions_delivered", "spend_to_date", "fill_rate",
+                    "win_rate", "avg_effective_cpm", "last_delivery_at",
+                    "performance_trend", "cached_at"}
+        updates = {k: v for k, v in kwargs.items() if k in allowed}
+        if not updates:
+            return False
+
+        set_clause = ", ".join(f"{col} = ?" for col in updates)
+        values = list(updates.values())
+        values.append(deal_id)
+
+        with self._lock:
+            # Update the most recent cache entry for this deal
+            cursor = self._conn.execute(
+                f"""UPDATE performance_cache SET {set_clause}
+                    WHERE id = (
+                        SELECT id FROM performance_cache
+                        WHERE deal_id = ?
+                        ORDER BY id DESC LIMIT 1
+                    )""",
+                values,
+            )
+            self._conn.commit()
+            return cursor.rowcount > 0
+
+    def delete_performance_cache(self, deal_id: str) -> bool:
+        """Delete all performance cache entries for a deal.
+
+        Args:
+            deal_id: The deal whose cache to delete.
+
+        Returns:
+            True if any rows were deleted, False if none existed.
+        """
+        with self._lock:
+            cursor = self._conn.execute(
+                "DELETE FROM performance_cache WHERE deal_id = ?",
+                (deal_id,),
+            )
+            self._conn.commit()
+            return cursor.rowcount > 0
 
     # ------------------------------------------------------------------
     # Helpers
