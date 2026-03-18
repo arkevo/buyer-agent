@@ -75,8 +75,8 @@ The Architecture section covers these topics:
 | **[Agent Hierarchy](agent-hierarchy.md)** | Three-level agent structure: portfolio manager, channel specialists, and tool-level agents |
 | **[Booking Flow](booking-flow.md)** | Detailed sequence diagram of the DealBookingFlow --- the campaign-level orchestration |
 | **[DSP Deal Flow](dsp-deal-flow.md)** | Single-deal flow for direct DSP integration without multi-channel orchestration |
-| **[Order State Machine](state-machine.md)** | 12 deal states and 9 campaign states with guard conditions and audit trail |
-| **[Event Bus](event-bus.md)** | 13 event types providing structured observability across all flows |
+| **[Order State Machine](../state-machines/order-lifecycle.md)** | 12 deal states and 9 campaign states with guard conditions and audit trail |
+| **[Event Bus](../event-bus/overview.md)** | 13 event types providing structured observability across all flows |
 | **[Deal Store](deal-store.md)** | SQLite persistence for deals, events, and session state |
 | **[Models](models.md)** | Pydantic data models for API requests, flow state, and deal records |
 | **[Tools Reference](tools.md)** | CrewAI tools available to agents for research, booking, and negotiation |
@@ -150,7 +150,7 @@ See also: [Seller Agent Architecture](https://iabtechlab.github.io/seller-agent/
 
 - [Booking Flow](booking-flow.md) --- detailed sequence diagram of the campaign-level DealBookingFlow
 - [DSP Deal Flow](dsp-deal-flow.md) --- single-deal flow for direct DSP integration
-- [Order State Machine](state-machine.md) --- deal and campaign lifecycle enforcement
-- [Event Bus](event-bus.md) --- structured observability across all flows
+- [Order State Machine](../state-machines/order-lifecycle.md) --- deal and campaign lifecycle enforcement
+- [Event Bus](../event-bus/overview.md) --- structured observability across all flows
 - [Models](models.md) --- data model reference
 - [Seller Agent Integration](../integration/seller-agent.md)

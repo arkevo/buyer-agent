@@ -75,8 +75,8 @@ See the [API Overview](api/overview.md) for full details.
 - [Configuration](guides/configuration.md) --- environment variables, seller connections, and feature flags
 - [API Reference](api/overview.md) --- all endpoints, models, and curl examples
 - [Protocol Overview](api/protocols.md) --- comparison of MCP, A2A, and REST
-- [Order State Machine](architecture/state-machine.md) --- 12 deal states with guard conditions and audit trail
-- [Event Bus](architecture/event-bus.md) --- 13 event types with fail-open emission and persistence
+- [Order State Machine](state-machines/order-lifecycle.md) --- 12 deal states with guard conditions and audit trail
+- [Event Bus](event-bus/overview.md) --- 13 event types with fail-open emission and persistence
 
 ### Guides
 

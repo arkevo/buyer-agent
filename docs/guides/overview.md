@@ -29,7 +29,7 @@ flowchart LR
 | **Negotiation** | For Agency/Advertiser tier access, the buyer negotiates pricing with sellers via A2A | [Negotiation](negotiation.md) |
 | **Human Approval** | Recommendations are presented for review; no deals are booked without approval | See [Human Approvals](#human-approvals) below |
 | **Deal Booking** | Approved deals are booked via the seller's MCP or OpenDirect API | [Deal Booking](deal-booking.md) |
-| **Delivery & Tracking** | Booked deals move through the order state machine; events are logged for observability | [Architecture: State Machine](../architecture/state-machine.md), [Architecture: Event Bus](../architecture/event-bus.md) |
+| **Delivery & Tracking** | Booked deals move through the order state machine; events are logged for observability | [Architecture: State Machine](../state-machines/order-lifecycle.md), [Architecture: Event Bus](../event-bus/overview.md) |
 
 ## Two Flow Entry Points
 
@@ -38,7 +38,7 @@ The buyer supports two distinct entry points depending on your use case:
 - **DealBookingFlow** (campaign flow) --- The full multi-channel path. Starts from a campaign brief, allocates budget, researches across channels in parallel, builds recommendations, and books multiple deals after approval. This is the primary workflow for campaign managers.
 - **DSPDealFlow** (deal flow) --- The lightweight single-deal path. Discovers inventory and books one deal directly. Designed for programmatic DSP integration where the campaign planning happens externally.
 
-Both flows share the same [deal state machine](../architecture/state-machine.md), [event bus](../architecture/event-bus.md), and DealStore persistence. For architectural details, see [Architecture Overview](../architecture/overview.md).
+Both flows share the same [deal state machine](../state-machines/order-lifecycle.md), [event bus](../event-bus/overview.md), and DealStore persistence. For architectural details, see [Architecture Overview](../architecture/overview.md).
 
 ## Cross-Cutting Concerns
 
@@ -54,7 +54,7 @@ Set `auto_approve: true` in the campaign brief to bypass the gate for testing. I
 
 ### Logging & Observability
 
-Every significant action the buyer takes --- quote requests, negotiation rounds, deal bookings, budget allocations --- is recorded as a structured event on the [event bus](../architecture/event-bus.md). This is the buyer's observability layer: it answers "what happened, when, and why" for any workflow execution. Events are correlated by `flow_id`, `deal_id`, and `session_id`, making it straightforward to trace the full history of a campaign or a single deal.
+Every significant action the buyer takes --- quote requests, negotiation rounds, deal bookings, budget allocations --- is recorded as a structured event on the [event bus](../event-bus/overview.md). This is the buyer's observability layer: it answers "what happened, when, and why" for any workflow execution. Events are correlated by `flow_id`, `deal_id`, and `session_id`, making it straightforward to trace the full history of a campaign or a single deal.
 
 For operational monitoring, query the `/events` API endpoint or subscribe to events programmatically.
 

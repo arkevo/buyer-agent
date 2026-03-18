@@ -77,9 +77,9 @@ nav:
       - Models: architecture/models.md
       - Tools Reference: architecture/tools.md
   - State Machines:
-      - Order Lifecycle: architecture/state-machine.md
+      - Order Lifecycle: state-machines/order-lifecycle.md
   - Event Bus:
-      - Overview: architecture/event-bus.md
+      - Overview: event-bus/overview.md
   - Buyer Guide:
       - Overview: guides/overview.md
       - Deal Booking: guides/deal-booking.md
