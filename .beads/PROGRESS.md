@@ -73,55 +73,55 @@
 
 | | ID | Task | Priority | Blockers | Done |
 |---|---|---|---|---|---|
+| \[x] | buyer-te6b.1.10 | Add GET /api/v1/deals/{id}/performance endpoint [dj4] | P1 | — | 2026-03-19 |
+| \[x] | buyer-te6b.1.8 | Add GET /api/v1/supply-chain endpoint [dj2] | P1 | — | 2026-03-19 |
+| \[x] | buyer-te6b.1.9 | Add POST /api/v1/deals/from-template endpoint [dj3] | P1 | — | 2026-03-19 |
+| \[ ] | buyer-te6b.2.7 | AnalyzeSupplyPathTool [dj6] | P2 | — |  |
+| \[x] | buyer-te6b.1.13 | Deal template and supply path template CRUD [dj5] | P1 | — | 2026-03-19 |
+| \[ ] | buyer-te6b.2.8 | InstantiateDealFromTemplateTool [dj7] | P2 | — |  |
 | \[x] | buyer-te6b.1.6 | Organize internal deal-booking modules (consolidate per ar-fad) | P1 | — | 2026-03-19 |
 | \[x] | buyer-te6b.1.1 | Write DealJockey seller API contract (supply-chain, from-template, bulk, performance) | P1 | — | 2026-03-19 |
-| \[x] | buyer-te6b.1.13 | [buyer-dj5] Deal template and supply path template CRUD | P1 | — | 2026-03-19 |
-| \[ ] | buyer-te6b.2.7 | [buyer-dj6] AnalyzeSupplyPathTool | P2 | — |  |
-| \[ ] | buyer-te6b.2.8 | [buyer-dj7] InstantiateDealFromTemplateTool | P2 | — |  |
-| \[x] | buyer-te6b.1.8 | [seller-dj2] Add GET /api/v1/supply-chain endpoint | P1 | — | 2026-03-19 |
-| \[x] | buyer-te6b.1.9 | [seller-dj3] Add POST /api/v1/deals/from-template endpoint | P1 | — | 2026-03-19 |
-| \[x] | buyer-te6b.1.10 | [seller-dj4] Add GET /api/v1/deals/{id}/performance endpoint | P1 | — | 2026-03-19 |
 
 ### Phase 4C — Portfolio Intelligence
 
 | | ID | Task | Priority | Blockers | Done |
 |---|---|---|---|---|---|
+| \[ ] | buyer-te6b.2.14 | Add POST /api/v1/deals/bulk endpoint [dj6] | P2 | — |  |
 | \[ ] | buyer-te6b.2.2 | Build cross-path price comparison tool | P2 | — |  |
 | \[ ] | buyer-te6b.2.4 | Build deal deprecation analysis and execution | P2 | — |  |
 | \[ ] | buyer-te6b.2.6 | Build human instructions adapter for manual deal migration | P2 | — |  |
+| \[!] | buyer-te6b.2.9 | BulkDealOperationTool [dj8] | P2 | buyer-te6b.2.14 |  |
+| \[ ] | buyer-te6b.2.11 | Deal migration tool [dj12] | P2 | — |  |
 | \[ ] | buyer-te6b.2.12 | Define DealJockey event types (Phase 2) | P2 | — |  |
+| \[ ] | buyer-te6b.2.13 | Enhanced supply-chain with sellers.json and schain [dj5] | P2 | — |  |
+| \[ ] | buyer-te6b.2.10 | GetDealPerformanceTool [dj9] | P2 | — |  |
 | \[ ] | buyer-te6b.2.3 | Implement deal duplication for new advertisers | P2 | — |  |
 | \[ ] | buyer-te6b.2.1 | Implement deal portfolio gap analysis | P2 | — |  |
 | \[ ] | buyer-te6b.2.5 | Implement portfolio health reporting | P2 | — |  |
-| \[ ] | buyer-te6b.2.11 | [buyer-dj12] Deal migration tool (MigrateDealsTool) | P2 | — |  |
-| \[!] | buyer-te6b.2.9 | [buyer-dj8] BulkDealOperationTool | P2 | buyer-te6b.2.14 |  |
-| \[ ] | buyer-te6b.2.10 | [buyer-dj9] GetDealPerformanceTool | P2 | — |  |
-| \[ ] | buyer-te6b.2.13 | [seller-dj5] Enhanced supply-chain with sellers.json and schain | P2 | — |  |
-| \[ ] | buyer-te6b.2.14 | [seller-dj6] Add POST /api/v1/deals/bulk endpoint | P2 | — |  |
 
 ### Phase 4D — Platform Integrations
 
 | | ID | Task | Priority | Blockers | Done |
 |---|---|---|---|---|---|
 | \[ ] | buyer-te6b.3.4 | Amazon DSP API connector for deal import | P3 | — |  |
+| \[ ] | buyer-te6b.3.7 | Cross-platform deal activation tracker [dj11] | P3 | — |  |
 | \[!] | buyer-te6b.3.8 | Cross-platform deal deduplication | P3 | buyer-te6b.2.2 |  |
 | \[ ] | buyer-te6b.3.2 | DV360 API connector for deal import | P3 | — |  |
 | \[ ] | buyer-te6b.3.6 | Mediaocean Lumina export parser | P3 | — |  |
 | \[ ] | buyer-te6b.3.5 | Mediaocean Prisma export parser | P3 | — |  |
 | \[ ] | buyer-te6b.3.1 | TTD API connector for deal import | P3 | — |  |
 | \[ ] | buyer-te6b.3.3 | Xandr API connector for deal import | P3 | — |  |
-| \[ ] | buyer-te6b.3.7 | [buyer-dj11] Cross-platform deal activation tracker | P3 | — |  |
 
 ### Phase 4E — External Model Integration
 
 | | ID | Task | Priority | Blockers | Done |
 |---|---|---|---|---|---|
 | \[!] | buyer-te6b.4.4 | Add external optimization hooks to DealJockey | P3 | buyer-te6b.2.5, buyer-te6b.2.11 |  |
+| \[ ] | buyer-te6b.4.3 | Curator awareness in SPO [dj16] | P3 | — |  |
+| \[ ] | buyer-te6b.4.6 | Curator support (OpenDirect 3.0) [dj7] | P3 | — |  |
+| \[ ] | buyer-te6b.4.1 | Event system (Phase 4: optimization events) [dj14] | P3 | — |  |
 | \[!] | buyer-te6b.4.5 | ML-tuned supply path scoring | P3 | buyer-te6b.2.7 |  |
-| \[ ] | buyer-te6b.4.1 | [buyer-dj14] Event system (Phase 4: optimization events) | P3 | — |  |
-| \[ ] | buyer-te6b.4.2 | [buyer-dj15] Receive IAB Deals API v1.0 push updates | P3 | — |  |
-| \[ ] | buyer-te6b.4.3 | [buyer-dj16] Curator awareness in SPO | P3 | — |  |
-| \[ ] | buyer-te6b.4.6 | [seller-dj7] Curator support (OpenDirect 3.0) | P3 | — |  |
+| \[ ] | buyer-te6b.4.2 | Receive IAB Deals API v1.0 push updates [dj15] | P3 | — |  |
 
 ## Other
 
@@ -142,4 +142,4 @@
 | \[x] | buyer-c8e | Task: Run live smoke tests for DealJockey seller endpoints | P1 | — | 2026-03-19 |
 
 ---
-*Last updated: 2026-03-19 19:46 UTC — auto-generated by beads*
+*Last updated: 2026-03-19 19:51 UTC — auto-generated by beads*
