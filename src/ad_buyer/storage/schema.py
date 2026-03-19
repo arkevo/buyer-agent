@@ -24,7 +24,13 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 # Current schema version
-SCHEMA_VERSION = 2
+# Version registry:
+#   v1: Initial schema (deals, negotiation_rounds, booking_records, jobs, etc.)
+#   v2: Deal library hybrid approach (portfolio_metadata, deal_activations, etc.)
+#   v3: Creative assets table (Campaign Automation, Section 6.3)
+#   v4: Campaign automation tables -- campaigns, pacing_snapshots,
+#       ad_server_campaigns (buyer-80o)
+SCHEMA_VERSION = 4
 
 # -- Schema version tracking ------------------------------------------------
 
@@ -280,6 +286,98 @@ PERFORMANCE_CACHE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_performance_cache_deal_id ON performance_cache(deal_id);",
 ]
 
+# -- v3: Creative Asset table (Campaign Automation, Section 6.3) -----------
+
+CREATIVE_ASSETS_TABLE = """
+CREATE TABLE IF NOT EXISTS creative_assets (
+    asset_id            TEXT PRIMARY KEY,
+    campaign_id         TEXT NOT NULL,
+    asset_name          TEXT NOT NULL,
+    asset_type          TEXT NOT NULL,
+    format_spec         TEXT DEFAULT '{}',
+    source_url          TEXT,
+    validation_status   TEXT NOT NULL DEFAULT 'pending',
+    validation_errors   TEXT DEFAULT '[]',
+    created_at          TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    updated_at          TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+"""
+
+CREATIVE_ASSETS_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_creative_assets_campaign_id ON creative_assets(campaign_id);",
+    "CREATE INDEX IF NOT EXISTS idx_creative_assets_asset_type ON creative_assets(asset_type);",
+    "CREATE INDEX IF NOT EXISTS idx_creative_assets_validation_status ON creative_assets(validation_status);",
+]
+
+# -- v4: Campaign Automation tables (buyer-80o, Sections 6.1, 6.2, 6.4) ----
+
+CAMPAIGNS_TABLE = """
+CREATE TABLE IF NOT EXISTS campaigns (
+    campaign_id     TEXT PRIMARY KEY,
+    advertiser_id   TEXT NOT NULL,
+    campaign_name   TEXT NOT NULL,
+    status          TEXT NOT NULL DEFAULT 'DRAFT',
+    total_budget    REAL NOT NULL,
+    currency        TEXT NOT NULL DEFAULT 'USD',
+    flight_start    TEXT NOT NULL,
+    flight_end      TEXT NOT NULL,
+    channels        TEXT DEFAULT '[]',
+    target_audience TEXT DEFAULT '[]',
+    target_geo      TEXT DEFAULT '[]',
+    kpis            TEXT DEFAULT '[]',
+    brand_safety    TEXT,
+    approval_config TEXT,
+    created_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    updated_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+"""
+
+CAMPAIGNS_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_campaigns_status ON campaigns(status);",
+    "CREATE INDEX IF NOT EXISTS idx_campaigns_advertiser_id ON campaigns(advertiser_id);",
+    "CREATE INDEX IF NOT EXISTS idx_campaigns_flight_start ON campaigns(flight_start);",
+]
+
+PACING_SNAPSHOTS_TABLE = """
+CREATE TABLE IF NOT EXISTS pacing_snapshots (
+    snapshot_id             TEXT PRIMARY KEY,
+    campaign_id             TEXT NOT NULL,
+    timestamp               TEXT NOT NULL,
+    channel                 TEXT,
+    budget_allocated        REAL,
+    budget_spent            REAL,
+    impressions_target      INTEGER,
+    impressions_delivered   INTEGER,
+    pacing_percentage       REAL,
+    deviation               REAL,
+    data_source             TEXT,
+    data_freshness          TEXT
+);
+"""
+
+PACING_SNAPSHOTS_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_pacing_snapshots_campaign_id ON pacing_snapshots(campaign_id);",
+    "CREATE INDEX IF NOT EXISTS idx_pacing_snapshots_timestamp ON pacing_snapshots(timestamp);",
+]
+
+AD_SERVER_CAMPAIGNS_TABLE = """
+CREATE TABLE IF NOT EXISTS ad_server_campaigns (
+    binding_id              TEXT PRIMARY KEY,
+    campaign_id             TEXT NOT NULL,
+    ad_server               TEXT NOT NULL,
+    external_campaign_id    TEXT,
+    status                  TEXT NOT NULL DEFAULT 'PENDING',
+    creative_assignments    TEXT DEFAULT '{}',
+    last_sync_at            TEXT,
+    created_at              TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+"""
+
+AD_SERVER_CAMPAIGNS_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_ad_server_campaigns_campaign_id ON ad_server_campaigns(campaign_id);",
+    "CREATE INDEX IF NOT EXISTS idx_ad_server_campaigns_ad_server ON ad_server_campaigns(ad_server);",
+]
+
 
 def create_tables(conn: sqlite3.Connection) -> None:
     """Create all tables and indexes if they don't already exist.
@@ -304,6 +402,12 @@ def create_tables(conn: sqlite3.Connection) -> None:
         PORTFOLIO_METADATA_TABLE,
         DEAL_ACTIVATIONS_TABLE,
         PERFORMANCE_CACHE_TABLE,
+        # v3 creative assets table
+        CREATIVE_ASSETS_TABLE,
+        # v4 campaign automation tables
+        CAMPAIGNS_TABLE,
+        PACING_SNAPSHOTS_TABLE,
+        AD_SERVER_CAMPAIGNS_TABLE,
     ]:
         cursor.execute(ddl)
 
@@ -319,6 +423,12 @@ def create_tables(conn: sqlite3.Connection) -> None:
         PORTFOLIO_METADATA_INDEXES,
         DEAL_ACTIVATIONS_INDEXES,
         PERFORMANCE_CACHE_INDEXES,
+        # v3 creative assets indexes
+        CREATIVE_ASSETS_INDEXES,
+        # v4 campaign automation indexes
+        CAMPAIGNS_INDEXES,
+        PACING_SNAPSHOTS_INDEXES,
+        AD_SERVER_CAMPAIGNS_INDEXES,
     ]:
         for idx in index_list:
             cursor.execute(idx)
@@ -462,6 +572,61 @@ def migrate_v1_to_v2(conn: sqlite3.Connection) -> None:
     logger.info("Migration v1 -> v2 complete: deal library hybrid schema applied")
 
 
+def migrate_v2_to_v3(conn: sqlite3.Connection) -> None:
+    """Migrate schema from v2 to v3 (creative assets table).
+
+    Creates the ``creative_assets`` table for campaign creative management.
+    Idempotent: CREATE TABLE IF NOT EXISTS is a no-op if the table exists.
+
+    Args:
+        conn: Active SQLite connection.
+    """
+    cursor = conn.cursor()
+    cursor.execute(CREATIVE_ASSETS_TABLE)
+    for idx in CREATIVE_ASSETS_INDEXES:
+        cursor.execute(idx)
+    conn.commit()
+    logger.info("Migration v2 -> v3 complete: creative_assets table added")
+
+
+def migrate_v3_to_v4(conn: sqlite3.Connection) -> None:
+    """Migrate schema from v3 to v4 (campaign automation tables).
+
+    Creates three new tables for campaign management:
+    ``campaigns``, ``pacing_snapshots``, ``ad_server_campaigns``.
+
+    (The fourth campaign automation table, ``creative_assets``, was
+    already created in the v3 migration.)
+
+    This migration is idempotent: all DDL uses CREATE TABLE IF NOT EXISTS
+    and CREATE INDEX IF NOT EXISTS, so re-running is safe.
+
+    Args:
+        conn: Active SQLite connection.
+    """
+    cursor = conn.cursor()
+
+    # -- Create v4 tables --------------------------------------------------
+    cursor.execute(CAMPAIGNS_TABLE)
+    cursor.execute(PACING_SNAPSHOTS_TABLE)
+    cursor.execute(AD_SERVER_CAMPAIGNS_TABLE)
+
+    # -- Create indexes ----------------------------------------------------
+    for index_list in [
+        CAMPAIGNS_INDEXES,
+        PACING_SNAPSHOTS_INDEXES,
+        AD_SERVER_CAMPAIGNS_INDEXES,
+    ]:
+        for idx in index_list:
+            cursor.execute(idx)
+
+    conn.commit()
+    logger.info(
+        "Migration v3 -> v4 complete: campaigns, pacing_snapshots, "
+        "ad_server_campaigns tables created"
+    )
+
+
 def run_migrations(conn: sqlite3.Connection) -> None:
     """Run pending schema migrations.
 
@@ -479,6 +644,8 @@ def run_migrations(conn: sqlite3.Connection) -> None:
     # Migration registry: version -> migration function
     migrations: dict[int, callable] = {
         2: migrate_v1_to_v2,
+        3: migrate_v2_to_v3,
+        4: migrate_v3_to_v4,
     }
 
     for version in range(current + 1, SCHEMA_VERSION + 1):

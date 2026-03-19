@@ -60,6 +60,11 @@ from .deals import (
 # Avoid shadowing buyer_identity.DealResponse with deals.DealResponse
 # by importing the deals version under a distinct name
 from .deals import DealResponse as SellerDealResponse
+from .creative_asset import (
+    AssetType,
+    CreativeAsset,
+    ValidationStatus,
+)
 
 __all__ = [
     # OpenDirect models
@@ -113,4 +118,8 @@ __all__ = [
     "SellerDealResponse",
     "SellerErrorResponse",
     "TermsInfo",
+    # Creative asset models (Campaign Automation)
+    "AssetType",
+    "CreativeAsset",
+    "ValidationStatus",
 ]
