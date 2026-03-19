@@ -17,6 +17,7 @@ Defines relational tables for the deal lifecycle:
 - pacing_snapshots: Periodic pacing data points per campaign (v4)
 - creative_assets: Creative files and metadata per campaign (v4)
 - ad_server_campaigns: Ad server integration records (v4)
+- approval_requests: Human approval gate requests (v4, buyer-2qs)
 
 Uses a schema_version table for forward-compatible migrations.
 """
@@ -379,6 +380,29 @@ AD_SERVER_CAMPAIGNS_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_ad_server_campaigns_ad_server ON ad_server_campaigns(ad_server);",
 ]
 
+# -- v4 continued: Approval requests (buyer-2qs) --------------------------
+
+APPROVAL_REQUESTS_TABLE = """
+CREATE TABLE IF NOT EXISTS approval_requests (
+    approval_request_id TEXT PRIMARY KEY,
+    campaign_id         TEXT NOT NULL,
+    stage               TEXT NOT NULL,
+    status              TEXT NOT NULL DEFAULT 'pending',
+    requested_at        TEXT NOT NULL,
+    decided_at          TEXT,
+    reviewer            TEXT,
+    notes               TEXT,
+    context             TEXT DEFAULT '{}',
+    FOREIGN KEY (campaign_id) REFERENCES campaigns(campaign_id)
+);
+"""
+
+APPROVAL_REQUESTS_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_approval_requests_campaign_id ON approval_requests(campaign_id);",
+    "CREATE INDEX IF NOT EXISTS idx_approval_requests_status ON approval_requests(status);",
+    "CREATE INDEX IF NOT EXISTS idx_approval_requests_stage ON approval_requests(stage);",
+]
+
 
 def create_tables(conn: sqlite3.Connection) -> None:
     """Create all tables and indexes if they don't already exist.
@@ -408,6 +432,7 @@ def create_tables(conn: sqlite3.Connection) -> None:
         PACING_SNAPSHOTS_TABLE,
         CREATIVE_ASSETS_TABLE,
         AD_SERVER_CAMPAIGNS_TABLE,
+        APPROVAL_REQUESTS_TABLE,
     ]:
         cursor.execute(ddl)
 
@@ -428,6 +453,7 @@ def create_tables(conn: sqlite3.Connection) -> None:
         PACING_SNAPSHOTS_INDEXES,
         CREATIVE_ASSETS_INDEXES,
         AD_SERVER_CAMPAIGNS_INDEXES,
+        APPROVAL_REQUESTS_INDEXES,
     ]:
         for idx in index_list:
             cursor.execute(idx)

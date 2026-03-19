@@ -75,6 +75,11 @@ class EventType(str, Enum):
     CREATIVE_ROTATION_UPDATED = "creative.rotation_updated"
     CREATIVE_AD_SERVER_PUSHED = "creative.ad_server_pushed"
 
+    # Approval lifecycle (Campaign Automation, buyer-2qs)
+    APPROVAL_REQUESTED = "approval.requested"
+    APPROVAL_GRANTED = "approval.granted"
+    APPROVAL_REJECTED = "approval.rejected"
+
 
 class Event(BaseModel):
     """An event emitted by the buyer system."""
