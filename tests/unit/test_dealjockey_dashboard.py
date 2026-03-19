@@ -22,6 +22,7 @@ import pytest
 
 from ad_buyer.demo.dealjockey_dashboard import create_app
 from ad_buyer.demo.seed_data import seed_demo_data
+from ad_buyer.storage import SCHEMA_VERSION
 from ad_buyer.storage.deal_store import DealStore
 
 
@@ -158,7 +159,7 @@ class TestAPIRoutes:
         resp = client.get("/api/schema")
         assert resp.status_code == 200
         data = resp.get_json()
-        assert data["schema_version"] == 2
+        assert data["schema_version"] == SCHEMA_VERSION
         assert isinstance(data["tables"], list)
         assert len(data["tables"]) > 0
         assert isinstance(data["v2_columns"], list)

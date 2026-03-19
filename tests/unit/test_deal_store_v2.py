@@ -53,17 +53,17 @@ def raw_conn():
 # Schema Version Tests
 # -----------------------------------------------------------------------
 
-class TestSchemaV2Version:
-    """Verify schema version is bumped to 2."""
+class TestSchemaVersion:
+    """Verify schema version matches the current SCHEMA_VERSION constant."""
 
-    def test_schema_version_is_2(self):
-        """SCHEMA_VERSION constant must be 2."""
-        assert SCHEMA_VERSION == 2
+    def test_schema_version_is_current(self):
+        """SCHEMA_VERSION constant must match the expected current version."""
+        assert SCHEMA_VERSION == 4
 
-    def test_initialize_schema_sets_version_2(self, raw_conn):
-        """initialize_schema records version 2."""
+    def test_initialize_schema_sets_current_version(self, raw_conn):
+        """initialize_schema records the current SCHEMA_VERSION."""
         initialize_schema(raw_conn)
-        assert get_schema_version(raw_conn) == 2
+        assert get_schema_version(raw_conn) == SCHEMA_VERSION
 
 
 # -----------------------------------------------------------------------
@@ -245,11 +245,11 @@ class TestMigrationV1ToV2:
         migrate_v1_to_v2(raw_conn)
 
     def test_migration_registered_in_migrations_dict(self, raw_conn):
-        """run_migrations calls migrate_v1_to_v2 when upgrading from v1."""
+        """run_migrations upgrades from v1 through all migrations to current."""
         self._setup_v1_schema(raw_conn)
-        # run_migrations should bring v1 to v2
+        # run_migrations should bring v1 all the way to SCHEMA_VERSION
         run_migrations(raw_conn)
-        assert get_schema_version(raw_conn) == 2
+        assert get_schema_version(raw_conn) == SCHEMA_VERSION
 
         # Verify migration was actually applied (check for a new column)
         cursor = raw_conn.execute("PRAGMA table_info(deals)")
