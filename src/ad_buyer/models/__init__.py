@@ -60,6 +60,23 @@ from .deals import (
 # Avoid shadowing buyer_identity.DealResponse with deals.DealResponse
 # by importing the deals version under a distinct name
 from .deals import DealResponse as SellerDealResponse
+from .campaign_brief import (
+    ApprovalConfig,
+    ApprovalStage,
+    BrandSafety,
+    CampaignBrief,
+    CampaignObjective,
+    ChannelAllocation,
+    ChannelType,
+    DealPreferences,
+    FrequencyCap,
+    GeoTarget,
+    GeoType,
+    KPI,
+    KPIMetric,
+    PacingModel,
+    parse_campaign_brief,
+)
 
 __all__ = [
     # OpenDirect models
@@ -113,4 +130,20 @@ __all__ = [
     "SellerDealResponse",
     "SellerErrorResponse",
     "TermsInfo",
+    # Campaign brief models (buyer-80k)
+    "ApprovalConfig",
+    "ApprovalStage",
+    "BrandSafety",
+    "CampaignBrief",
+    "CampaignObjective",
+    "ChannelAllocation",
+    "ChannelType",
+    "DealPreferences",
+    "FrequencyCap",
+    "GeoTarget",
+    "GeoType",
+    "KPI",
+    "KPIMetric",
+    "PacingModel",
+    "parse_campaign_brief",
 ]
