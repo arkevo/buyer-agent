@@ -748,6 +748,14 @@ def create_campaign_demo_app(
         template_folder=str(_TEMPLATE_DIR),
     )
 
+    # Delete stale DB to ensure fresh schema (demo app, not production)
+    if database_url.startswith("sqlite:///") and database_url != "sqlite:///:memory:":
+        db_path = database_url.replace("sqlite:///", "")
+        for suffix in ("", "-wal", "-shm"):
+            path = db_path + suffix
+            if os.path.exists(path):
+                os.remove(path)
+
     # Initialize stores
     campaign_store = CampaignStore(database_url)
     campaign_store.connect()
