@@ -321,24 +321,25 @@ CAMPAIGNS_INDEXES = [
 
 PACING_SNAPSHOTS_TABLE = """
 CREATE TABLE IF NOT EXISTS pacing_snapshots (
-    snapshot_id             TEXT PRIMARY KEY,
-    campaign_id             TEXT NOT NULL,
-    timestamp               TEXT NOT NULL,
-    channel                 TEXT,
-    budget_allocated        REAL,
-    budget_spent            REAL,
-    impressions_target      INTEGER,
-    impressions_delivered   INTEGER,
-    pacing_percentage       REAL,
-    deviation               REAL,
-    data_source             TEXT,
-    data_freshness          TEXT
+    snapshot_id         TEXT PRIMARY KEY,
+    campaign_id         TEXT NOT NULL,
+    timestamp           TEXT NOT NULL,
+    total_budget        REAL NOT NULL,
+    total_spend         REAL NOT NULL,
+    pacing_pct          REAL NOT NULL,
+    expected_spend      REAL NOT NULL,
+    deviation_pct       REAL NOT NULL,
+    channel_snapshots   TEXT DEFAULT '[]',
+    deal_snapshots      TEXT DEFAULT '[]',
+    recommendations     TEXT DEFAULT '[]',
+    created_at          TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 """
 
 PACING_SNAPSHOTS_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_pacing_snapshots_campaign_id ON pacing_snapshots(campaign_id);",
     "CREATE INDEX IF NOT EXISTS idx_pacing_snapshots_timestamp ON pacing_snapshots(timestamp);",
+    "CREATE INDEX IF NOT EXISTS idx_pacing_snapshots_campaign_timestamp ON pacing_snapshots(campaign_id, timestamp);",
 ]
 
 CREATIVE_ASSETS_TABLE = """
