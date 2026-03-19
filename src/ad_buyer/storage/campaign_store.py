@@ -9,6 +9,7 @@ Provides CRUD operations for the campaign automation data model:
 - creative_assets: Creative files and metadata per campaign
 - ad_server_campaigns: Ad server integration records (Innovid/Flashtalking)
 - campaign_events: Lifecycle events emitted during state transitions
+- approval_requests: Human approval gate requests (buyer-2qs)
 
 Integrates with CampaignAutomationStateMachine (buyer-0u9) to validate
 all status transitions before persisting them.  Lifecycle convenience
@@ -32,7 +33,11 @@ from ..models.state_machine import (
     CampaignStatus,
     InvalidTransitionError,
 )
-from .schema import initialize_schema
+from .schema import (
+    APPROVAL_REQUESTS_TABLE,
+    APPROVAL_REQUESTS_INDEXES,
+    initialize_schema,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -991,3 +996,162 @@ class CampaignStore:
             self._conn.commit()
 
         return True
+
+    # ------------------------------------------------------------------
+    # Approval Requests (buyer-2qs)
+    # ------------------------------------------------------------------
+
+    def create_approval_requests_table(self) -> None:
+        """Create the approval_requests table if it doesn't exist.
+
+        Called by ApprovalGate.__init__ to ensure the table is present
+        even if the database was created before v4 schema migration
+        included it.
+        """
+        with self._lock:
+            self._conn.execute(APPROVAL_REQUESTS_TABLE)
+            for idx in APPROVAL_REQUESTS_INDEXES:
+                self._conn.execute(idx)
+            self._conn.commit()
+
+    def save_approval_request(
+        self,
+        *,
+        approval_request_id: str,
+        campaign_id: str,
+        stage: str,
+        status: str,
+        requested_at: str,
+        context: Optional[str] = None,
+    ) -> str:
+        """Insert a new approval request.
+
+        Args:
+            approval_request_id: Unique ID for this request.
+            campaign_id: FK to campaigns table.
+            stage: Approval stage (PLAN_REVIEW, BOOKING, etc.).
+            status: Current status (pending, approved, rejected).
+            requested_at: ISO timestamp when requested.
+            context: Optional JSON string with reviewer context.
+
+        Returns:
+            The approval_request_id.
+        """
+        with self._lock:
+            self._conn.execute(
+                """INSERT INTO approval_requests
+                   (approval_request_id, campaign_id, stage, status,
+                    requested_at, context)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (
+                    approval_request_id, campaign_id, stage, status,
+                    requested_at, context or "{}",
+                ),
+            )
+            self._conn.commit()
+
+        return approval_request_id
+
+    def update_approval_request(
+        self,
+        approval_request_id: str,
+        **kwargs: Any,
+    ) -> bool:
+        """Update specified fields on an approval request.
+
+        Args:
+            approval_request_id: The request to update.
+            **kwargs: Column name/value pairs to update.
+
+        Returns:
+            True if the request was found and updated, False otherwise.
+        """
+        allowed = {"status", "decided_at", "reviewer", "notes"}
+        updates = {k: v for k, v in kwargs.items() if k in allowed}
+        if not updates:
+            return False
+
+        set_clause = ", ".join(f"{col} = ?" for col in updates)
+        values = list(updates.values()) + [approval_request_id]
+
+        with self._lock:
+            cursor = self._conn.execute(
+                "SELECT approval_request_id FROM approval_requests "
+                "WHERE approval_request_id = ?",
+                (approval_request_id,),
+            )
+            if cursor.fetchone() is None:
+                return False
+
+            self._conn.execute(
+                f"UPDATE approval_requests SET {set_clause} "
+                f"WHERE approval_request_id = ?",
+                values,
+            )
+            self._conn.commit()
+
+        return True
+
+    def get_approval_request(
+        self, approval_request_id: str
+    ) -> Optional[dict[str, Any]]:
+        """Retrieve an approval request by ID.
+
+        Args:
+            approval_request_id: The request's primary key.
+
+        Returns:
+            Request as a dict, or None if not found.
+        """
+        with self._lock:
+            cursor = self._conn.execute(
+                "SELECT * FROM approval_requests "
+                "WHERE approval_request_id = ?",
+                (approval_request_id,),
+            )
+            row = cursor.fetchone()
+        return dict(row) if row else None
+
+    def list_approval_requests(
+        self,
+        *,
+        campaign_id: Optional[str] = None,
+        stage: Optional[str] = None,
+        status: Optional[str] = None,
+        limit: int = 100,
+    ) -> list[dict[str, Any]]:
+        """List approval requests with optional filters.
+
+        Args:
+            campaign_id: Filter by campaign ID.
+            stage: Filter by approval stage.
+            status: Filter by status.
+            limit: Maximum rows to return.
+
+        Returns:
+            List of request dicts ordered by requested_at descending.
+        """
+        clauses: list[str] = []
+        params: list[Any] = []
+
+        if campaign_id is not None:
+            clauses.append("campaign_id = ?")
+            params.append(campaign_id)
+        if stage is not None:
+            clauses.append("stage = ?")
+            params.append(stage)
+        if status is not None:
+            clauses.append("status = ?")
+            params.append(status)
+
+        where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+        query = (
+            f"SELECT * FROM approval_requests {where} "
+            f"ORDER BY requested_at DESC LIMIT ?"
+        )
+        params.append(limit)
+
+        with self._lock:
+            cursor = self._conn.execute(query, params)
+            rows = cursor.fetchall()
+        return [dict(r) for r in rows]
