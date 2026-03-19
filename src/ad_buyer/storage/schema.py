@@ -13,6 +13,10 @@ Defines relational tables for the deal lifecycle:
 - portfolio_metadata: Extrinsic deal metadata (v2, D-4 hybrid approach)
 - deal_activations: Cross-platform deal activations (v2)
 - performance_cache: Cached deal performance metrics (v2)
+- campaigns: Campaign automation records (v4)
+- pacing_snapshots: Periodic pacing data points per campaign (v4)
+- creative_assets: Creative files and metadata per campaign (v4)
+- ad_server_campaigns: Ad server integration records (v4)
 
 Uses a schema_version table for forward-compatible migrations.
 """
@@ -27,9 +31,8 @@ logger = logging.getLogger(__name__)
 # Version registry:
 #   v1: Initial schema (deals, negotiation_rounds, booking_records, jobs, etc.)
 #   v2: Deal library hybrid approach (portfolio_metadata, deal_activations, etc.)
-#   v3: Creative assets table (Campaign Automation, Section 6.3)
-#   v4: Campaign automation tables -- campaigns, pacing_snapshots,
-#       ad_server_campaigns (buyer-80o)
+#   v3: Reserved for deal_templates (ar-fcq)
+#   v4: Campaign automation tables (buyer-80o)
 SCHEMA_VERSION = 4
 
 # -- Schema version tracking ------------------------------------------------
@@ -286,30 +289,7 @@ PERFORMANCE_CACHE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_performance_cache_deal_id ON performance_cache(deal_id);",
 ]
 
-# -- v3: Creative Asset table (Campaign Automation, Section 6.3) -----------
-
-CREATIVE_ASSETS_TABLE = """
-CREATE TABLE IF NOT EXISTS creative_assets (
-    asset_id            TEXT PRIMARY KEY,
-    campaign_id         TEXT NOT NULL,
-    asset_name          TEXT NOT NULL,
-    asset_type          TEXT NOT NULL,
-    format_spec         TEXT DEFAULT '{}',
-    source_url          TEXT,
-    validation_status   TEXT NOT NULL DEFAULT 'pending',
-    validation_errors   TEXT DEFAULT '[]',
-    created_at          TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-    updated_at          TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
-);
-"""
-
-CREATIVE_ASSETS_INDEXES = [
-    "CREATE INDEX IF NOT EXISTS idx_creative_assets_campaign_id ON creative_assets(campaign_id);",
-    "CREATE INDEX IF NOT EXISTS idx_creative_assets_asset_type ON creative_assets(asset_type);",
-    "CREATE INDEX IF NOT EXISTS idx_creative_assets_validation_status ON creative_assets(validation_status);",
-]
-
-# -- v4: Campaign Automation tables (buyer-80o, Sections 6.1, 6.2, 6.4) ----
+# -- v4: Campaign Automation tables (buyer-80o) ----------------------------
 
 CAMPAIGNS_TABLE = """
 CREATE TABLE IF NOT EXISTS campaigns (
@@ -360,6 +340,25 @@ PACING_SNAPSHOTS_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_pacing_snapshots_timestamp ON pacing_snapshots(timestamp);",
 ]
 
+CREATIVE_ASSETS_TABLE = """
+CREATE TABLE IF NOT EXISTS creative_assets (
+    asset_id            TEXT PRIMARY KEY,
+    campaign_id         TEXT NOT NULL,
+    asset_name          TEXT NOT NULL,
+    asset_type          TEXT NOT NULL,
+    format_spec         TEXT DEFAULT '{}',
+    source_url          TEXT,
+    validation_status   TEXT,
+    validation_errors   TEXT,
+    created_at          TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+"""
+
+CREATIVE_ASSETS_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_creative_assets_campaign_id ON creative_assets(campaign_id);",
+    "CREATE INDEX IF NOT EXISTS idx_creative_assets_asset_type ON creative_assets(asset_type);",
+]
+
 AD_SERVER_CAMPAIGNS_TABLE = """
 CREATE TABLE IF NOT EXISTS ad_server_campaigns (
     binding_id              TEXT PRIMARY KEY,
@@ -402,11 +401,10 @@ def create_tables(conn: sqlite3.Connection) -> None:
         PORTFOLIO_METADATA_TABLE,
         DEAL_ACTIVATIONS_TABLE,
         PERFORMANCE_CACHE_TABLE,
-        # v3 creative assets table
-        CREATIVE_ASSETS_TABLE,
         # v4 campaign automation tables
         CAMPAIGNS_TABLE,
         PACING_SNAPSHOTS_TABLE,
+        CREATIVE_ASSETS_TABLE,
         AD_SERVER_CAMPAIGNS_TABLE,
     ]:
         cursor.execute(ddl)
@@ -423,11 +421,10 @@ def create_tables(conn: sqlite3.Connection) -> None:
         PORTFOLIO_METADATA_INDEXES,
         DEAL_ACTIVATIONS_INDEXES,
         PERFORMANCE_CACHE_INDEXES,
-        # v3 creative assets indexes
-        CREATIVE_ASSETS_INDEXES,
         # v4 campaign automation indexes
         CAMPAIGNS_INDEXES,
         PACING_SNAPSHOTS_INDEXES,
+        CREATIVE_ASSETS_INDEXES,
         AD_SERVER_CAMPAIGNS_INDEXES,
     ]:
         for idx in index_list:
@@ -572,49 +569,36 @@ def migrate_v1_to_v2(conn: sqlite3.Connection) -> None:
     logger.info("Migration v1 -> v2 complete: deal library hybrid schema applied")
 
 
-def migrate_v2_to_v3(conn: sqlite3.Connection) -> None:
-    """Migrate schema from v2 to v3 (creative assets table).
+def migrate_v2_to_v4(conn: sqlite3.Connection) -> None:
+    """Migrate schema from v2 to v4 (campaign automation tables).
 
-    Creates the ``creative_assets`` table for campaign creative management.
-    Idempotent: CREATE TABLE IF NOT EXISTS is a no-op if the table exists.
-
-    Args:
-        conn: Active SQLite connection.
-    """
-    cursor = conn.cursor()
-    cursor.execute(CREATIVE_ASSETS_TABLE)
-    for idx in CREATIVE_ASSETS_INDEXES:
-        cursor.execute(idx)
-    conn.commit()
-    logger.info("Migration v2 -> v3 complete: creative_assets table added")
-
-
-def migrate_v3_to_v4(conn: sqlite3.Connection) -> None:
-    """Migrate schema from v3 to v4 (campaign automation tables).
-
-    Creates three new tables for campaign management:
-    ``campaigns``, ``pacing_snapshots``, ``ad_server_campaigns``.
-
-    (The fourth campaign automation table, ``creative_assets``, was
-    already created in the v3 migration.)
+    Creates four new tables for campaign management:
+    ``campaigns``, ``pacing_snapshots``, ``creative_assets``,
+    ``ad_server_campaigns``.
 
     This migration is idempotent: all DDL uses CREATE TABLE IF NOT EXISTS
-    and CREATE INDEX IF NOT EXISTS, so re-running is safe.
+    and CREATE INDEX IF NOT EXISTS, so re-running on a v4 database is safe.
+
+    Note: v3 is reserved for deal_templates (ar-fcq) but may not yet exist
+    in the database.  This migration is independent of v3 and works whether
+    or not v3 tables are present.
 
     Args:
         conn: Active SQLite connection.
     """
     cursor = conn.cursor()
 
-    # -- Create v4 tables --------------------------------------------------
+    # -- Create campaign automation tables ---------------------------------
     cursor.execute(CAMPAIGNS_TABLE)
     cursor.execute(PACING_SNAPSHOTS_TABLE)
+    cursor.execute(CREATIVE_ASSETS_TABLE)
     cursor.execute(AD_SERVER_CAMPAIGNS_TABLE)
 
     # -- Create indexes ----------------------------------------------------
     for index_list in [
         CAMPAIGNS_INDEXES,
         PACING_SNAPSHOTS_INDEXES,
+        CREATIVE_ASSETS_INDEXES,
         AD_SERVER_CAMPAIGNS_INDEXES,
     ]:
         for idx in index_list:
@@ -622,8 +606,7 @@ def migrate_v3_to_v4(conn: sqlite3.Connection) -> None:
 
     conn.commit()
     logger.info(
-        "Migration v3 -> v4 complete: campaigns, pacing_snapshots, "
-        "ad_server_campaigns tables created"
+        "Migration v2 -> v4 complete: campaign automation tables created"
     )
 
 
@@ -642,10 +625,11 @@ def run_migrations(conn: sqlite3.Connection) -> None:
         return
 
     # Migration registry: version -> migration function
+    # Note: v3 is reserved for deal_templates (ar-fcq); when implemented,
+    # add migrate_v2_to_v3 here.  v4 (campaign automation) is independent.
     migrations: dict[int, callable] = {
         2: migrate_v1_to_v2,
-        3: migrate_v2_to_v3,
-        4: migrate_v3_to_v4,
+        4: migrate_v2_to_v4,
     }
 
     for version in range(current + 1, SCHEMA_VERSION + 1):

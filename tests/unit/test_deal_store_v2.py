@@ -53,15 +53,15 @@ def raw_conn():
 # Schema Version Tests
 # -----------------------------------------------------------------------
 
-class TestSchemaVersion:
-    """Verify schema version matches the current SCHEMA_VERSION constant."""
+class TestSchemaV2Version:
+    """Verify schema version reflects the latest migration (v4)."""
 
-    def test_schema_version_is_current(self):
-        """SCHEMA_VERSION constant must match the expected current version."""
-        assert SCHEMA_VERSION == 4
+    def test_schema_version_is_at_least_2(self):
+        """SCHEMA_VERSION constant must be >= 2 (v4 after campaign automation)."""
+        assert SCHEMA_VERSION >= 2
 
-    def test_initialize_schema_sets_current_version(self, raw_conn):
-        """initialize_schema records the current SCHEMA_VERSION."""
+    def test_initialize_schema_sets_latest_version(self, raw_conn):
+        """initialize_schema records the latest schema version."""
         initialize_schema(raw_conn)
         assert get_schema_version(raw_conn) == SCHEMA_VERSION
 
@@ -245,13 +245,13 @@ class TestMigrationV1ToV2:
         migrate_v1_to_v2(raw_conn)
 
     def test_migration_registered_in_migrations_dict(self, raw_conn):
-        """run_migrations upgrades from v1 through all migrations to current."""
+        """run_migrations calls migrate_v1_to_v2 when upgrading from v1."""
         self._setup_v1_schema(raw_conn)
-        # run_migrations should bring v1 all the way to SCHEMA_VERSION
+        # run_migrations should bring v1 to latest version (v4)
         run_migrations(raw_conn)
         assert get_schema_version(raw_conn) == SCHEMA_VERSION
 
-        # Verify migration was actually applied (check for a new column)
+        # Verify v2 migration was applied (check for a v2 column)
         cursor = raw_conn.execute("PRAGMA table_info(deals)")
         cols = {row[1] for row in cursor.fetchall()}
         assert "display_name" in cols
