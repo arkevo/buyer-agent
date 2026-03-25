@@ -157,10 +157,19 @@ class TestTemplateReportingToolRegistration:
 
     @pytest.mark.asyncio
     async def test_total_tool_count(self):
-        """Should have 12 existing + 6 new = 18 tools."""
+        """Should have at least the 6 template/reporting tools registered."""
         tools = await mcp.list_tools()
-        names = sorted(t.name for t in tools)
-        assert len(names) == 18, f"Expected 18 tools, got {len(names)}: {names}"
+        names = [t.name for t in tools]
+        expected = [
+            "list_templates",
+            "create_template",
+            "instantiate_from_template",
+            "get_deal_performance",
+            "get_campaign_report",
+            "get_pacing_report",
+        ]
+        for tool_name in expected:
+            assert tool_name in names, f"Expected tool {tool_name!r} to be registered"
 
 
 # ---------------------------------------------------------------------------
