@@ -99,9 +99,9 @@ def sample_campaign_data():
 class TestSchemaMigrationV4:
     """Tests that migrate_v2_to_v4 creates the campaign automation tables."""
 
-    def test_schema_version_is_4(self):
-        """SCHEMA_VERSION constant should be 4."""
-        assert SCHEMA_VERSION == 4
+    def test_schema_version_is_5(self):
+        """SCHEMA_VERSION constant should be 5 (v5 adds templates)."""
+        assert SCHEMA_VERSION == 5
 
     def test_migration_creates_campaigns_table(self, v4_conn):
         """campaigns table should exist after migration."""
@@ -243,13 +243,13 @@ class TestSchemaMigrationV4:
         )
         assert cursor.fetchone() is not None
 
-    def test_full_initialize_schema_reaches_v4(self):
-        """initialize_schema on a fresh DB should reach v4."""
+    def test_full_initialize_schema_reaches_v5(self):
+        """initialize_schema on a fresh DB should reach v5."""
         conn = sqlite3.connect(":memory:")
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys=ON")
         initialize_schema(conn)
-        assert get_schema_version(conn) == 4
+        assert get_schema_version(conn) == 5
 
     def test_migration_from_v2_creates_campaigns(self, db_conn):
         """Migration from v2 to v4 should create campaigns table."""

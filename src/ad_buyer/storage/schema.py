@@ -33,7 +33,8 @@ logger = logging.getLogger(__name__)
 #   v2: Deal library hybrid approach (portfolio_metadata, deal_activations, etc.)
 #   v3: Reserved for deal_templates (ar-fcq)
 #   v4: Campaign automation tables (buyer-80o)
-SCHEMA_VERSION = 4
+#   v5: Deal templates + supply path templates (ar-ct33)
+SCHEMA_VERSION = 5
 
 # -- Schema version tracking ------------------------------------------------
 
@@ -403,6 +404,55 @@ APPROVAL_REQUESTS_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_approval_requests_stage ON approval_requests(stage);",
 ]
 
+# -- v5: Template tables (DealJockey Section 6.3, 6.4) ---------------------
+
+DEAL_TEMPLATE_TABLE = """
+CREATE TABLE IF NOT EXISTS deal_templates (
+    id                  TEXT PRIMARY KEY,
+    name                TEXT NOT NULL,
+    deal_type_pref      TEXT,
+    inventory_types     TEXT,
+    preferred_publishers TEXT,
+    excluded_publishers TEXT,
+    targeting_defaults  TEXT,
+    default_price       REAL,
+    max_cpm             REAL,
+    min_impressions     INTEGER,
+    default_flight_days INTEGER,
+    supply_path_prefs   TEXT,
+    advertiser_id       TEXT,
+    agency_id           TEXT,
+    created_at          TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    updated_at          TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+"""
+
+DEAL_TEMPLATE_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_deal_templates_name ON deal_templates(name);",
+    "CREATE INDEX IF NOT EXISTS idx_deal_templates_advertiser_id ON deal_templates(advertiser_id);",
+    "CREATE INDEX IF NOT EXISTS idx_deal_templates_deal_type_pref ON deal_templates(deal_type_pref);",
+]
+
+SUPPLY_PATH_TEMPLATE_TABLE = """
+CREATE TABLE IF NOT EXISTS supply_path_templates (
+    id                      TEXT PRIMARY KEY,
+    name                    TEXT NOT NULL,
+    scoring_weights         TEXT,
+    max_reseller_hops       INTEGER,
+    require_sellers_json    INTEGER DEFAULT 0,
+    preferred_ssps          TEXT,
+    blocked_ssps            TEXT,
+    preferred_curators      TEXT,
+    rules                   TEXT,
+    created_at              TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    updated_at              TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+"""
+
+SUPPLY_PATH_TEMPLATE_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_supply_path_templates_name ON supply_path_templates(name);",
+]
+
 
 def create_tables(conn: sqlite3.Connection) -> None:
     """Create all tables and indexes if they don't already exist.
@@ -433,6 +483,9 @@ def create_tables(conn: sqlite3.Connection) -> None:
         CREATIVE_ASSETS_TABLE,
         AD_SERVER_CAMPAIGNS_TABLE,
         APPROVAL_REQUESTS_TABLE,
+        # v5 template tables
+        DEAL_TEMPLATE_TABLE,
+        SUPPLY_PATH_TEMPLATE_TABLE,
     ]:
         cursor.execute(ddl)
 
@@ -454,6 +507,9 @@ def create_tables(conn: sqlite3.Connection) -> None:
         CREATIVE_ASSETS_INDEXES,
         AD_SERVER_CAMPAIGNS_INDEXES,
         APPROVAL_REQUESTS_INDEXES,
+        # v5 template indexes
+        DEAL_TEMPLATE_INDEXES,
+        SUPPLY_PATH_TEMPLATE_INDEXES,
     ]:
         for idx in index_list:
             cursor.execute(idx)
@@ -636,6 +692,32 @@ def migrate_v2_to_v4(conn: sqlite3.Connection) -> None:
     logger.info("Migration v2 -> v4 complete: campaign automation tables created")
 
 
+def migrate_v4_to_v5(conn: sqlite3.Connection) -> None:
+    """Migrate schema from v4 to v5 (deal and supply path templates).
+
+    Creates ``deal_templates`` and ``supply_path_templates`` tables for
+    DealJockey template CRUD (Strategic Plan Sections 6.3 and 6.4).
+
+    This migration is idempotent: CREATE TABLE IF NOT EXISTS is a no-op
+    for existing tables.
+
+    Args:
+        conn: Active SQLite connection.
+    """
+    cursor = conn.cursor()
+
+    cursor.execute(DEAL_TEMPLATE_TABLE)
+    cursor.execute(SUPPLY_PATH_TEMPLATE_TABLE)
+
+    for idx in DEAL_TEMPLATE_INDEXES:
+        cursor.execute(idx)
+    for idx in SUPPLY_PATH_TEMPLATE_INDEXES:
+        cursor.execute(idx)
+
+    conn.commit()
+    logger.info("Migration v4 -> v5 complete: template tables created")
+
+
 def run_migrations(conn: sqlite3.Connection) -> None:
     """Run pending schema migrations.
 
@@ -651,11 +733,12 @@ def run_migrations(conn: sqlite3.Connection) -> None:
         return
 
     # Migration registry: version -> migration function
-    # Note: v3 is reserved for deal_templates (ar-fcq); when implemented,
-    # add migrate_v2_to_v3 here.  v4 (campaign automation) is independent.
+    # Note: v3 is reserved for deal_templates (ar-fcq); skipped.
+    # v5 adds deal_templates + supply_path_templates.
     migrations: dict[int, callable] = {
         2: migrate_v1_to_v2,
         4: migrate_v2_to_v4,
+        5: migrate_v4_to_v5,
     }
 
     for version in range(current + 1, SCHEMA_VERSION + 1):

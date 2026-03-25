@@ -10,11 +10,14 @@ from .portfolio_inspection import (
     PortfolioSummaryTool,
     SearchPortfolioTool,
 )
+from .templates import ManageDealTemplateTool, ManageSupplyPathTemplateTool
 
 __all__ = [
-    "ManualDealEntryTool",
-    "ListPortfolioTool",
-    "SearchPortfolioTool",
-    "PortfolioSummaryTool",
     "InspectDealTool",
+    "ListPortfolioTool",
+    "ManageDealTemplateTool",
+    "ManageSupplyPathTemplateTool",
+    "ManualDealEntryTool",
+    "PortfolioSummaryTool",
+    "SearchPortfolioTool",
 ]

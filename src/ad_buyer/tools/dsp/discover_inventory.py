@@ -9,6 +9,7 @@ from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 
 from ...async_utils import run_async
+from ...booking.pricing import PricingCalculator
 from ...clients.unified_client import UnifiedClient
 from ...models.buyer_identity import BuyerContext
 
@@ -192,10 +193,16 @@ Returns:
                 )
                 targeting = product.get("targeting", product.get("availableTargeting", []))
 
-                # Calculate tiered price
+                # Calculate tiered price using centralized PricingCalculator
                 if isinstance(base_price, (int, float)) and discount > 0:
-                    tiered_price = base_price * (1 - discount / 100)
-                    price_display = f"${tiered_price:.2f} (was ${base_price:.2f})"
+                    tier_obj = self._buyer_context.identity.get_access_tier()
+                    calculator = PricingCalculator()
+                    pricing_result = calculator.calculate(
+                        base_price=base_price,
+                        tier=tier_obj,
+                        tier_discount=discount,
+                    )
+                    price_display = f"${pricing_result.tiered_price:.2f} (was ${base_price:.2f})"
                 else:
                     price_display = (
                         f"${base_price:.2f}"

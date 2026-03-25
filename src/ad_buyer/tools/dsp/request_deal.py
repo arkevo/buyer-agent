@@ -3,14 +3,15 @@
 
 """Deal ID request tool for DSP workflows."""
 
-import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 
 from ...async_utils import run_async
+from ...booking.deal_id import generate_deal_id
+from ...booking.pricing import PricingCalculator
 from ...clients.unified_client import UnifiedClient
 from ...models.buyer_identity import (
     AccessTier,
@@ -183,8 +184,11 @@ Returns:
         flight_end: str | None,
         target_cpm: float | None,
     ) -> DealResponse:
-        """Create a deal response with calculated pricing."""
-        # Get tier and base price
+        """Create a deal response with calculated pricing.
+
+        Uses the centralized PricingCalculator and deal ID generator
+        from ad_buyer.booking to avoid duplicated logic.
+        """
         tier = self._buyer_context.identity.get_access_tier()
         discount = self._buyer_context.identity.get_discount_percentage()
         base_price = product.get("basePrice", product.get("price", 20.0))
@@ -192,39 +196,29 @@ Returns:
         if not isinstance(base_price, (int, float)):
             base_price = 20.0
 
-        # Calculate tiered price
-        tiered_price = base_price * (1 - discount / 100)
+        calculator = PricingCalculator()
+        pricing = calculator.calculate(
+            base_price=base_price,
+            tier=tier,
+            tier_discount=discount,
+            volume=impressions,
+            target_cpm=target_cpm,
+            can_negotiate=self._buyer_context.can_negotiate(),
+            negotiation_enabled=product.get("negotiation_enabled", False),
+        )
 
-        # Apply volume discount for agency/advertiser
-        if impressions and tier in (AccessTier.AGENCY, AccessTier.ADVERTISER):
-            if impressions >= 10_000_000:
-                tiered_price *= 0.90  # 10% volume discount
-            elif impressions >= 5_000_000:
-                tiered_price *= 0.95  # 5% volume discount
+        identity = self._buyer_context.identity
+        deal_id = generate_deal_id(
+            product_id=product.get("id", "unknown"),
+            identity_seed=identity.agency_id or identity.seat_id or "public",
+        )
 
-        # Handle negotiation -- only when BOTH buyer can negotiate AND
-        # the seller's package has negotiation_enabled=True (ar-9xi)
-        final_price = tiered_price
-        package_negotiation_enabled = product.get("negotiation_enabled", False)
-        if target_cpm and self._buyer_context.can_negotiate() and package_negotiation_enabled:
-            # Simple negotiation: accept if within 10% of floor
-            floor_price = tiered_price * 0.90
-            if target_cpm >= floor_price:
-                final_price = target_cpm
-            else:
-                # Counter at floor
-                final_price = floor_price
-
-        # Generate Deal ID
-        deal_id = self._generate_deal_id(product.get("id", "unknown"), tier)
-
-        # Set default flight dates if not provided
+        now = datetime.now(timezone.utc)
         if not flight_start:
-            flight_start = datetime.now().strftime("%Y-%m-%d")
+            flight_start = now.strftime("%Y-%m-%d")
         if not flight_end:
-            flight_end = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d")
+            flight_end = (now + timedelta(days=30)).strftime("%Y-%m-%d")
 
-        # Activation instructions
         activation_instructions = {
             "ttd": f"The Trade Desk > Inventory > Private Marketplace > Add Deal ID: {deal_id}",
             "dv360": f"Display & Video 360 > Inventory > My Inventory > New > Deal ID: {deal_id}",
@@ -238,25 +232,16 @@ Returns:
             product_id=product.get("id", "unknown"),
             product_name=product.get("name", "Unknown Product"),
             deal_type=deal_type,
-            price=round(final_price, 2),
-            original_price=round(base_price, 2),
+            price=round(pricing.final_price, 2),
+            original_price=round(pricing.base_price, 2),
             discount_applied=round(discount, 1),
             access_tier=tier,
             impressions=impressions,
             flight_start=flight_start,
             flight_end=flight_end,
             activation_instructions=activation_instructions,
-            expires_at=(datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d"),
+            expires_at=(now + timedelta(days=7)).strftime("%Y-%m-%d"),
         )
-
-    def _generate_deal_id(self, product_id: str, tier: AccessTier) -> str:
-        """Generate a unique Deal ID."""
-        # Create a semi-random but reproducible deal ID
-        timestamp = datetime.now().strftime("%Y%m%d%H%M")
-        identity = self._buyer_context.identity
-        seed = f"{product_id}-{identity.agency_id or identity.seat_id or 'public'}-{timestamp}"
-        hash_suffix = hashlib.md5(seed.encode(), usedforsecurity=False).hexdigest()[:8].upper()
-        return f"DEAL-{hash_suffix}"
 
     def _format_deal_response(self, deal: DealResponse) -> str:
         """Format deal response for output."""
