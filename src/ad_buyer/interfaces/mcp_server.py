@@ -777,6 +777,445 @@ def revoke_api_key(seller_url: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Template Tools (buyer-5x7)
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool()
+def list_templates(template_type: str | None = None) -> str:
+    """List available deal and supply path templates.
+
+    Returns both deal templates and supply path templates, optionally
+    filtered by type.
+
+    Args:
+        template_type: Optional filter -- "deal" for deal templates only,
+            "supply_path" for supply path templates only. If omitted,
+            returns both.
+
+    Returns a JSON object with:
+    - deal_templates: list of deal template summaries
+    - supply_path_templates: list of supply path template summaries
+    - total_deal_templates: count of deal templates
+    - total_supply_path_templates: count of supply path templates
+    """
+    store = _get_deal_store()
+    try:
+        deal_templates: list[dict[str, Any]] = []
+        spo_templates: list[dict[str, Any]] = []
+
+        if template_type is None or template_type == "deal":
+            raw = store.list_deal_templates()
+            for t in raw:
+                deal_templates.append({
+                    "template_id": t["id"],
+                    "name": t["name"],
+                    "deal_type_pref": t.get("deal_type_pref"),
+                    "advertiser_id": t.get("advertiser_id"),
+                    "max_cpm": t.get("max_cpm"),
+                    "created_at": t.get("created_at"),
+                })
+
+        if template_type is None or template_type == "supply_path":
+            raw = store.list_supply_path_templates()
+            for t in raw:
+                spo_templates.append({
+                    "template_id": t["id"],
+                    "name": t["name"],
+                    "max_reseller_hops": t.get("max_reseller_hops"),
+                    "created_at": t.get("created_at"),
+                })
+
+        result = {
+            "deal_templates": deal_templates,
+            "supply_path_templates": spo_templates,
+            "total_deal_templates": len(deal_templates),
+            "total_supply_path_templates": len(spo_templates),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        return json.dumps(result, indent=2)
+    finally:
+        if _deal_store_override is None:
+            store.disconnect()
+
+
+@mcp.tool()
+def create_template(
+    template_type: str | None = None,
+    name: str | None = None,
+    deal_type_pref: str | None = None,
+    max_cpm: float | None = None,
+    min_impressions: int | None = None,
+    default_price: float | None = None,
+    default_flight_days: int | None = None,
+    advertiser_id: str | None = None,
+    agency_id: str | None = None,
+    max_reseller_hops: int | None = None,
+    scoring_weights: str | None = None,
+    preferred_ssps: str | None = None,
+    blocked_ssps: str | None = None,
+) -> str:
+    """Create a new deal or supply path template.
+
+    Args:
+        template_type: Required. Either "deal" or "supply_path".
+        name: Required. Human-readable template name.
+        deal_type_pref: Deal type preference (PG, PMP, etc.) -- deal only.
+        max_cpm: Maximum CPM -- deal only.
+        min_impressions: Minimum impressions -- deal only.
+        default_price: Default price -- deal only.
+        default_flight_days: Default flight duration in days -- deal only.
+        advertiser_id: Scope to specific advertiser -- deal only.
+        agency_id: Agency identifier -- deal only.
+        max_reseller_hops: Max supply chain hops -- supply path only.
+        scoring_weights: JSON scoring weights -- supply path only.
+        preferred_ssps: JSON preferred SSP list -- supply path only.
+        blocked_ssps: JSON blocked SSP list -- supply path only.
+
+    Returns a JSON object with:
+    - template_id: the new template's ID
+    - template_type: "deal" or "supply_path"
+    - name: the template name
+    - error: present only if validation failed
+    """
+    if not template_type or template_type not in ("deal", "supply_path"):
+        return json.dumps(
+            {"error": "template_type is required and must be 'deal' or 'supply_path'"},
+            indent=2,
+        )
+    if not name or not str(name).strip():
+        return json.dumps({"error": "'name' is required"}, indent=2)
+
+    store = _get_deal_store()
+    try:
+        if template_type == "deal":
+            template_id = store.save_deal_template(
+                name=name,
+                deal_type_pref=deal_type_pref,
+                default_price=default_price,
+                max_cpm=max_cpm,
+                min_impressions=min_impressions,
+                default_flight_days=default_flight_days,
+                advertiser_id=advertiser_id,
+                agency_id=agency_id,
+            )
+        else:
+            template_id = store.save_supply_path_template(
+                name=name,
+                max_reseller_hops=max_reseller_hops,
+                scoring_weights=scoring_weights,
+                preferred_ssps=preferred_ssps,
+                blocked_ssps=blocked_ssps,
+            )
+
+        result = {
+            "template_id": template_id,
+            "template_type": template_type,
+            "name": name,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        return json.dumps(result, indent=2)
+    except Exception as exc:
+        return json.dumps(
+            {"error": f"Failed to create template: {exc}"},
+            indent=2,
+        )
+    finally:
+        if _deal_store_override is None:
+            store.disconnect()
+
+
+@mcp.tool()
+def instantiate_from_template(
+    template_id: str | None = None,
+    overrides: str | None = None,
+) -> str:
+    """Create a deal from a deal template with optional overrides.
+
+    Looks up the deal template, applies any overrides, and creates a
+    new deal in the deal store.
+
+    Args:
+        template_id: Required. The deal template ID to instantiate.
+        overrides: Optional JSON string of field overrides (e.g.
+            '{"price": 25.0, "product_name": "Custom CTV"}').
+
+    Returns a JSON object with:
+    - deal_id: the newly created deal ID
+    - template_id: the source template ID
+    - template_name: the source template name
+    - error: present only if the template was not found
+    """
+    if not template_id:
+        return json.dumps(
+            {"error": "template_id is required"},
+            indent=2,
+        )
+
+    store = _get_deal_store()
+    try:
+        tmpl = store.get_deal_template(template_id)
+        if tmpl is None:
+            return json.dumps(
+                {"error": f"Deal template not found: {template_id}"},
+                indent=2,
+            )
+
+        # Parse overrides -- handle both str and dict (MCP may pre-parse)
+        override_dict: dict[str, Any] = {}
+        if overrides:
+            if isinstance(overrides, dict):
+                override_dict = overrides
+            else:
+                try:
+                    override_dict = json.loads(overrides)
+                except (json.JSONDecodeError, TypeError) as exc:
+                    return json.dumps(
+                        {"error": f"Invalid overrides JSON: {exc}"},
+                        indent=2,
+                    )
+
+        # Build deal fields from template + overrides
+        price = override_dict.get("price", tmpl.get("default_price", 0.0))
+        product_name = override_dict.get(
+            "product_name",
+            f"Deal from template: {tmpl['name']}",
+        )
+        product_id = override_dict.get("product_id", f"tmpl-{template_id[:8]}")
+        seller_url = override_dict.get("seller_url", "")
+
+        deal_id = store.save_deal(
+            seller_url=seller_url,
+            product_id=product_id,
+            product_name=product_name,
+            status="booked",
+            price=price,
+        )
+
+        result = {
+            "deal_id": deal_id,
+            "template_id": template_id,
+            "template_name": tmpl["name"],
+            "product_name": product_name,
+            "price": price,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        return json.dumps(result, indent=2)
+    except Exception as exc:
+        return json.dumps(
+            {"error": f"Failed to instantiate template: {exc}"},
+            indent=2,
+        )
+    finally:
+        if _deal_store_override is None:
+            store.disconnect()
+
+
+# ---------------------------------------------------------------------------
+# Reporting Tools (buyer-5x7)
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool()
+def get_deal_performance(deal_id: str) -> str:
+    """Get performance metrics for a specific deal.
+
+    Returns deal details including price, status, and negotiation
+    history from the deal store.
+
+    Args:
+        deal_id: The unique identifier of the deal.
+
+    Returns a JSON object with:
+    - deal_id, product_name, product_id, seller_url, status, price
+    - negotiation_rounds: number of negotiation rounds
+    - error: present only if the deal was not found
+    """
+    store = _get_deal_store()
+    try:
+        deal = store.get_deal(deal_id)
+        if deal is None:
+            return json.dumps(
+                {"error": f"Deal not found: {deal_id}"},
+                indent=2,
+            )
+
+        # Get negotiation history for round count
+        rounds = store.get_negotiation_history(deal_id)
+
+        result = {
+            "deal_id": deal_id,
+            "product_id": deal.get("product_id", ""),
+            "product_name": deal.get("product_name", ""),
+            "seller_url": deal.get("seller_url", ""),
+            "status": deal.get("status", "unknown"),
+            "price": deal.get("price"),
+            "negotiation_rounds": len(rounds),
+            "created_at": deal.get("created_at", ""),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        return json.dumps(result, indent=2)
+    finally:
+        if _deal_store_override is None:
+            store.disconnect()
+
+
+@mcp.tool()
+def get_campaign_report(campaign_id: str) -> str:
+    """Generate a campaign performance report.
+
+    Combines campaign status, pacing data, creative asset summary,
+    and deal-level metrics into a single comprehensive report.
+
+    Args:
+        campaign_id: The unique identifier of the campaign.
+
+    Returns a JSON object with:
+    - campaign_id, campaign_name, status
+    - status_summary: campaign state and delivery metrics
+    - pacing: pacing dashboard data
+    - creative_summary: creative asset validation counts
+    - deal_summary: deal-level metrics
+    - error: present only if the campaign was not found
+    """
+    from ..reporting.campaign_report import CampaignReporter
+
+    campaign_store = _get_campaign_store()
+    pacing_store = _get_pacing_store()
+    try:
+        campaign = campaign_store.get_campaign(campaign_id)
+        if campaign is None:
+            return json.dumps(
+                {"error": f"Campaign not found: {campaign_id}"},
+                indent=2,
+            )
+
+        reporter = CampaignReporter(campaign_store, pacing_store)
+
+        status = reporter.campaign_status_summary(campaign_id)
+        pacing = reporter.pacing_dashboard(campaign_id)
+        creative = reporter.creative_performance_report(campaign_id)
+        deals = reporter.deal_report(campaign_id)
+
+        result = {
+            "campaign_id": campaign_id,
+            "campaign_name": campaign["campaign_name"],
+            "status": campaign["status"],
+            "status_summary": status._to_dict(),
+            "pacing": pacing._to_dict(),
+            "creative_summary": {
+                "total_assets": creative.total_assets,
+                "valid_assets": creative.valid_assets,
+                "pending_assets": creative.pending_assets,
+                "invalid_assets": creative.invalid_assets,
+            },
+            "deal_summary": {
+                "total_deals": deals.total_deals,
+                "total_spend": deals.total_spend,
+                "total_impressions": deals.total_impressions,
+                "avg_fill_rate": deals.avg_fill_rate,
+                "avg_win_rate": deals.avg_win_rate,
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        return json.dumps(result, indent=2)
+    finally:
+        campaign_store.disconnect()
+        pacing_store.disconnect()
+
+
+@mcp.tool()
+def get_pacing_report(campaign_id: str) -> str:
+    """Get budget pacing report for a campaign.
+
+    Provides detailed pacing data including expected vs actual spend,
+    per-channel breakdown, deviation alerts, and pacing status.
+
+    This is a more detailed version of check_pacing that includes
+    alert details and channel-level effective CPM and fill rates.
+
+    Args:
+        campaign_id: The unique identifier of the campaign.
+
+    Returns a JSON object with:
+    - campaign_id, campaign_name
+    - pacing_status: on_track, behind, ahead, or no_data
+    - total_budget, total_spend, expected_spend
+    - pacing_pct, deviation_pct
+    - channel_pacing: per-channel breakdown with eCPM and fill rate
+    - alerts: list of pacing deviation alerts
+    - error: present only if the campaign was not found
+    """
+    from ..reporting.campaign_report import CampaignReporter
+
+    campaign_store = _get_campaign_store()
+    pacing_store = _get_pacing_store()
+    try:
+        campaign = campaign_store.get_campaign(campaign_id)
+        if campaign is None:
+            return json.dumps(
+                {"error": f"Campaign not found: {campaign_id}"},
+                indent=2,
+            )
+
+        reporter = CampaignReporter(campaign_store, pacing_store)
+        dashboard = reporter.pacing_dashboard(campaign_id)
+
+        # Determine pacing status from deviation
+        deviation = dashboard.deviation_pct
+        if dashboard.total_spend == 0.0 and dashboard.expected_spend == 0.0:
+            pacing_status = "no_data"
+        elif deviation < -10.0:
+            pacing_status = "behind"
+        elif deviation > 10.0:
+            pacing_status = "ahead"
+        else:
+            pacing_status = "on_track"
+
+        # Build channel pacing with full details
+        channel_pacing = []
+        for ch in dashboard.channel_pacing:
+            channel_pacing.append({
+                "channel": ch.channel,
+                "allocated_budget": ch.allocated_budget,
+                "spend": ch.spend,
+                "pacing_pct": ch.pacing_pct,
+                "impressions": ch.impressions,
+                "effective_cpm": ch.effective_cpm,
+                "fill_rate": ch.fill_rate,
+            })
+
+        # Build alerts
+        alerts = []
+        for alert in dashboard.alerts:
+            alerts.append({
+                "severity": alert.severity,
+                "message": alert.message,
+                "channel": alert.channel,
+                "deviation_pct": alert.deviation_pct,
+            })
+
+        result = {
+            "campaign_id": campaign_id,
+            "campaign_name": campaign["campaign_name"],
+            "pacing_status": pacing_status,
+            "total_budget": dashboard.total_budget,
+            "total_spend": dashboard.total_spend,
+            "expected_spend": dashboard.expected_spend,
+            "pacing_pct": dashboard.pacing_pct,
+            "deviation_pct": dashboard.deviation_pct,
+            "channel_pacing": channel_pacing,
+            "alerts": alerts,
+            "snapshot_timestamp": dashboard.snapshot_timestamp,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        return json.dumps(result, indent=2)
+    finally:
+        campaign_store.disconnect()
+        pacing_store.disconnect()
+
+
+# ---------------------------------------------------------------------------
 # Mounting
 # ---------------------------------------------------------------------------
 
