@@ -804,3 +804,97 @@ class TestGetPortfolioSummary:
         data = json.loads(_extract_text(result))
         assert isinstance(data, dict)
         assert "timestamp" in data
+
+
+# ---------------------------------------------------------------------------
+# Test create_deal_manual -> inspect_deal roundtrip (v2 field persistence)
+# ---------------------------------------------------------------------------
+
+
+class TestCreateDealManualRoundtrip:
+    """Verify that v2 fields set via create_deal_manual survive the
+    save/load roundtrip and appear in inspect_deal output."""
+
+    @pytest.mark.asyncio
+    async def test_v2_fields_survive_roundtrip(self):
+        """All v2 fields set in create_deal_manual should be readable
+        from inspect_deal after the deal is persisted."""
+        store = _make_deal_store()
+        _set_deal_store(store)
+
+        create_result = await mcp.call_tool("create_deal_manual", {
+            "display_name": "Premium Video PG",
+            "seller_url": "https://nbcu.seller.example.com",
+            "deal_type": "PG",
+            "status": "active",
+            "seller_org": "NBCUniversal",
+            "seller_domain": "nbcuniversal.com",
+            "seller_type": "PUBLISHER",
+            "buyer_org": "MediaCo Agency",
+            "buyer_id": "buyer-mediaco-001",
+            "price": 15.50,
+            "fixed_price_cpm": 15.50,
+            "bid_floor_cpm": 12.00,
+            "price_model": "CPM",
+            "currency": "EUR",
+            "media_type": "CTV",
+            "impressions": 5000000,
+            "flight_start": "2026-04-01",
+            "flight_end": "2026-06-30",
+            "description": "Premium CTV video inventory for Q2 campaign",
+        })
+        create_data = json.loads(_extract_text(create_result))
+        assert create_data["success"] is True
+        deal_id = create_data["deal_id"]
+
+        # Read back via inspect_deal
+        inspect_result = await mcp.call_tool("inspect_deal", {"deal_id": deal_id})
+        inspect_data = json.loads(_extract_text(inspect_result))
+
+        # Verify all v2 fields survived the roundtrip
+        assert inspect_data["display_name"] == "Premium Video PG"
+        assert inspect_data["seller_org"] == "NBCUniversal"
+        assert inspect_data["seller_domain"] == "nbcuniversal.com"
+        assert inspect_data["seller_type"] == "PUBLISHER"
+        assert inspect_data["buyer_org"] == "MediaCo Agency"
+        assert inspect_data["buyer_id"] == "buyer-mediaco-001"
+        assert inspect_data["price_model"] == "CPM"
+        assert inspect_data["fixed_price_cpm"] == 15.50
+        assert inspect_data["bid_floor_cpm"] == 12.00
+        assert inspect_data["currency"] == "EUR"
+        assert inspect_data["media_type"] == "CTV"
+        assert inspect_data["description"] == "Premium CTV video inventory for Q2 campaign"
+
+    @pytest.mark.asyncio
+    async def test_filter_by_media_type_after_create(self):
+        """After create_deal_manual, filtering by media_type via list_deals
+        should find the deal."""
+        store = _make_deal_store()
+        _set_deal_store(store)
+
+        await mcp.call_tool("create_deal_manual", {
+            "display_name": "CTV Deal",
+            "seller_url": "https://seller.example.com",
+            "media_type": "CTV",
+        })
+
+        result = await mcp.call_tool("list_deals", {"media_type": "CTV"})
+        data = json.loads(_extract_text(result))
+        assert data["total"] == 1
+        assert data["deals"][0]["media_type"] == "CTV"
+
+    @pytest.mark.asyncio
+    async def test_search_by_seller_org_after_create(self):
+        """After create_deal_manual, searching by seller_org should find the deal."""
+        store = _make_deal_store()
+        _set_deal_store(store)
+
+        await mcp.call_tool("create_deal_manual", {
+            "display_name": "NBC Deal",
+            "seller_url": "https://nbc.example.com",
+            "seller_org": "NBCUniversal",
+        })
+
+        result = await mcp.call_tool("search_deals", {"query": "NBCUniversal"})
+        data = json.loads(_extract_text(result))
+        assert data["total"] >= 1
