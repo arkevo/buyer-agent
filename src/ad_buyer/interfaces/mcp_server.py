@@ -10,6 +10,8 @@ Tool categories:
   - Foundation: get_setup_status, health_check, get_config
   - Campaign Management: list_campaigns, get_campaign_status,
     check_pacing, review_budgets (buyer-3w3)
+  - Deal Library: list_deals, search_deals, inspect_deal,
+    import_deals_csv, create_deal_manual, get_portfolio_summary (buyer-4ds)
 
 Mount into a FastAPI app:
     from ad_buyer.interfaces.mcp_server import mount_mcp
@@ -21,10 +23,12 @@ This creates an SSE endpoint at /mcp/sse for MCP client connections
 
 from __future__ import annotations
 
+import csv
+import io
 import json
 import logging
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from typing import Any
 
 from fastapi import FastAPI
@@ -32,7 +36,17 @@ from mcp.server.fastmcp import FastMCP
 
 from ..config.settings import Settings
 from ..storage.campaign_store import CampaignStore
+from ..storage.deal_store import DealStore
 from ..storage.pacing_store import PacingStore
+from ..tools.deal_import import (
+    ImportResult as CsvImportResult,
+    _parse_row,
+    _resolve_columns,
+)
+from ..tools.deal_library.deal_entry import (
+    ManualDealEntry,
+    create_manual_deal,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -531,6 +545,627 @@ def review_budgets() -> str:
     finally:
         campaign_store.disconnect()
         pacing_store.disconnect()
+
+
+# ---------------------------------------------------------------------------
+# Deal Library Tools (buyer-4ds)
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool()
+def list_deals(
+    status: str | None = None,
+    deal_type: str | None = None,
+    media_type: str | None = None,
+    seller_domain: str | None = None,
+    limit: int = 50,
+) -> str:
+    """List deals in the portfolio with optional filters.
+
+    Args:
+        status: Filter by deal status (e.g. draft, active, paused, imported).
+        deal_type: Filter by deal type (PG, PD, PA, OPEN_AUCTION, UPFRONT, SCATTER).
+        media_type: Filter by media type (DIGITAL, CTV, LINEAR_TV, AUDIO, DOOH).
+        seller_domain: Filter by seller domain (e.g. espn.com).
+        limit: Maximum number of deals to return (default 50).
+
+    Returns a JSON object with:
+    - total: number of deals matching the filter
+    - deals: list of deal summary objects
+    - timestamp: when this list was generated
+    """
+    store = _get_deal_store()
+    try:
+        kwargs: dict[str, Any] = {}
+        if status is not None:
+            kwargs["status"] = status
+        if deal_type is not None:
+            kwargs["deal_type"] = deal_type
+        if media_type is not None:
+            kwargs["media_type"] = media_type
+        if seller_domain is not None:
+            kwargs["seller_domain"] = seller_domain
+        kwargs["limit"] = limit
+
+        deals = store.list_deals(**kwargs)
+
+        deal_summaries = []
+        for d in deals:
+            deal_summaries.append({
+                "deal_id": d["id"],
+                "display_name": d.get("display_name") or d.get("product_name") or "(unnamed)",
+                "status": d.get("status", "unknown"),
+                "deal_type": d.get("deal_type", "unknown"),
+                "media_type": d.get("media_type"),
+                "seller_org": d.get("seller_org"),
+                "seller_domain": d.get("seller_domain"),
+                "price": d.get("price"),
+                "impressions": d.get("impressions"),
+                "flight_start": d.get("flight_start"),
+                "flight_end": d.get("flight_end"),
+            })
+
+        result = {
+            "total": len(deal_summaries),
+            "deals": deal_summaries,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        return json.dumps(result, indent=2)
+    finally:
+        if _deal_store_override is None:
+            store.disconnect()
+
+
+@mcp.tool()
+def search_deals(query: str) -> str:
+    """Search deals in the portfolio by free-text query.
+
+    Performs case-insensitive matching against display_name, description,
+    seller_org, and seller_domain fields.
+
+    Args:
+        query: Search string. Must not be empty.
+
+    Returns a JSON object with:
+    - total: number of matching deals
+    - deals: list of matching deal objects with match context
+    - timestamp: when this search was performed
+    """
+    if not query or not query.strip():
+        return json.dumps(
+            {"error": "Search query must not be empty."},
+            indent=2,
+        )
+
+    query = query.strip()
+    query_lower = query.lower()
+
+    store = _get_deal_store()
+    try:
+        # Fetch all deals for search (search needs full scan)
+        deals = store.list_deals(limit=10000)
+
+        # Search fields and their labels
+        search_fields = [
+            ("display_name", "display name"),
+            ("product_name", "product name"),
+            ("description", "description"),
+            ("seller_org", "seller organization"),
+            ("seller_domain", "seller domain"),
+        ]
+
+        matches = []
+        for deal in deals:
+            matched_fields = []
+            for field_name, field_label in search_fields:
+                value = deal.get(field_name)
+                if value and query_lower in str(value).lower():
+                    matched_fields.append(field_label)
+            if matched_fields:
+                matches.append({
+                    "deal_id": deal["id"],
+                    "display_name": deal.get("display_name") or deal.get("product_name") or "(unnamed)",
+                    "status": deal.get("status", "unknown"),
+                    "deal_type": deal.get("deal_type", "unknown"),
+                    "media_type": deal.get("media_type"),
+                    "seller_org": deal.get("seller_org"),
+                    "seller_domain": deal.get("seller_domain"),
+                    "price": deal.get("price"),
+                    "matched_in": matched_fields,
+                })
+
+        result = {
+            "total": len(matches),
+            "query": query,
+            "deals": matches,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        return json.dumps(result, indent=2)
+    finally:
+        if _deal_store_override is None:
+            store.disconnect()
+
+
+@mcp.tool()
+def inspect_deal(deal_id: str) -> str:
+    """Get detailed information on a specific deal.
+
+    Returns all deal fields, portfolio metadata, deal activations,
+    and performance cache data.
+
+    Args:
+        deal_id: The unique identifier of the deal.
+
+    Returns a JSON object with:
+    - All core deal fields (display_name, status, deal_type, pricing, etc.)
+    - portfolio_metadata: import source, tags, advertiser info
+    - activations: cross-platform activation records
+    - performance: cached performance metrics
+    - error: present only if the deal was not found
+    """
+    store = _get_deal_store()
+    try:
+        deal = store.get_deal(deal_id)
+        if deal is None:
+            return json.dumps(
+                {"error": f"Deal not found: {deal_id}"},
+                indent=2,
+            )
+
+        # Build comprehensive deal view
+        result: dict[str, Any] = {
+            "deal_id": deal["id"],
+            "display_name": deal.get("display_name") or deal.get("product_name") or "(unnamed)",
+            "status": deal.get("status"),
+            "deal_type": deal.get("deal_type"),
+            "media_type": deal.get("media_type"),
+            "seller_url": deal.get("seller_url"),
+            "seller_deal_id": deal.get("seller_deal_id"),
+            "seller_org": deal.get("seller_org"),
+            "seller_domain": deal.get("seller_domain"),
+            "seller_type": deal.get("seller_type"),
+            "buyer_org": deal.get("buyer_org"),
+            "buyer_id": deal.get("buyer_id"),
+            "price": deal.get("price"),
+            "fixed_price_cpm": deal.get("fixed_price_cpm"),
+            "bid_floor_cpm": deal.get("bid_floor_cpm"),
+            "price_model": deal.get("price_model"),
+            "currency": deal.get("currency"),
+            "impressions": deal.get("impressions"),
+            "flight_start": deal.get("flight_start"),
+            "flight_end": deal.get("flight_end"),
+            "description": deal.get("description"),
+            "created_at": deal.get("created_at"),
+            "updated_at": deal.get("updated_at"),
+        }
+
+        # Portfolio metadata
+        metadata = store.get_portfolio_metadata(deal_id)
+        if metadata is not None:
+            result["portfolio_metadata"] = {
+                "import_source": metadata.get("import_source"),
+                "import_date": metadata.get("import_date"),
+                "advertiser_id": metadata.get("advertiser_id"),
+                "agency_id": metadata.get("agency_id"),
+                "tags": metadata.get("tags"),
+            }
+        else:
+            result["portfolio_metadata"] = None
+
+        # Deal activations
+        activations = store.get_deal_activations(deal_id)
+        result["activations"] = [
+            {
+                "platform": a.get("platform"),
+                "platform_deal_id": a.get("platform_deal_id"),
+                "activation_status": a.get("activation_status"),
+                "last_sync_at": a.get("last_sync_at"),
+            }
+            for a in activations
+        ]
+
+        # Performance cache
+        perf = store.get_performance_cache(deal_id)
+        if perf is not None:
+            result["performance"] = {
+                "impressions_delivered": perf.get("impressions_delivered"),
+                "spend_to_date": perf.get("spend_to_date"),
+                "fill_rate": perf.get("fill_rate"),
+                "win_rate": perf.get("win_rate"),
+                "avg_effective_cpm": perf.get("avg_effective_cpm"),
+                "performance_trend": perf.get("performance_trend"),
+                "cached_at": perf.get("cached_at"),
+            }
+        else:
+            result["performance"] = None
+
+        result["timestamp"] = datetime.now(timezone.utc).isoformat()
+        return json.dumps(result, indent=2)
+    finally:
+        if _deal_store_override is None:
+            store.disconnect()
+
+
+@mcp.tool()
+def import_deals_csv(
+    csv_data: str,
+    default_seller_url: str = "",
+    default_product_id: str = "imported",
+) -> str:
+    """Import deals from CSV data into the portfolio.
+
+    Parses CSV text with automatic column detection. Supported column
+    names include: deal_name, publisher, seller_domain, deal_type,
+    cpm/price, impressions, start_date, end_date, media_type, etc.
+
+    Args:
+        csv_data: CSV text content with header row and data rows.
+        default_seller_url: Default seller URL for imported deals
+            (CSV rarely contains full URLs).
+        default_product_id: Default product ID for imported deals.
+
+    Returns a JSON object with:
+    - total_rows: number of data rows processed
+    - successful: number of deals successfully imported
+    - failed: number of rows that failed validation
+    - skipped: number of duplicate rows skipped
+    - errors: list of per-row error details
+    - deal_ids: list of created deal IDs
+    - timestamp: when this import was performed
+    """
+    store = _get_deal_store()
+    try:
+        # Parse CSV from string
+        reader = csv.reader(io.StringIO(csv_data))
+        rows = list(reader)
+
+        import_result = CsvImportResult()
+
+        if not rows:
+            result = {
+                "total_rows": 0,
+                "successful": 0,
+                "failed": 0,
+                "skipped": 0,
+                "errors": [],
+                "deal_ids": [],
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+            return json.dumps(result, indent=2)
+
+        # First row is headers
+        headers = rows[0]
+        data_rows = rows[1:]
+
+        col_map = _resolve_columns(headers, None)
+
+        if not col_map:
+            result = {
+                "total_rows": 0,
+                "successful": 0,
+                "failed": 0,
+                "skipped": 0,
+                "errors": [{"message": "No columns could be mapped to schema fields."}],
+                "deal_ids": [],
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+            return json.dumps(result, indent=2)
+
+        import_result.total_rows = len(data_rows)
+
+        # Track seen deal IDs for deduplication
+        seen_deal_ids: set[str] = set()
+
+        for row_idx, row in enumerate(data_rows, start=1):
+            # Skip completely empty rows
+            if not any(cell.strip() for cell in row):
+                import_result.total_rows -= 1
+                continue
+
+            deal, errors = _parse_row(
+                row,
+                col_map,
+                row_number=row_idx,
+                default_seller_url=default_seller_url,
+                default_product_id=default_product_id,
+            )
+
+            if errors:
+                import_result.errors.extend(errors)
+                import_result.failed += 1
+                continue
+
+            # Deduplication by seller_deal_id
+            sdid = deal.get("seller_deal_id")
+            if sdid and sdid in seen_deal_ids:
+                import_result.skipped += 1
+                continue
+            if sdid:
+                seen_deal_ids.add(sdid)
+
+            import_result.deals.append(deal)
+            import_result.successful += 1
+
+        # Persist parsed deals to the store
+        deal_ids: list[str] = []
+        for deal_data in import_result.deals:
+            saved_id = store.save_deal(**deal_data)
+            deal_ids.append(saved_id)
+
+            # Save portfolio metadata
+            store.save_portfolio_metadata(
+                deal_id=saved_id,
+                import_source="CSV",
+                import_date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            )
+
+        # Build error dicts
+        error_dicts = [
+            {
+                "row": e.row_number,
+                "field": e.field,
+                "value": e.value,
+                "message": e.message,
+            }
+            for e in import_result.errors
+        ]
+
+        result = {
+            "total_rows": import_result.total_rows,
+            "successful": import_result.successful,
+            "failed": import_result.failed,
+            "skipped": import_result.skipped,
+            "errors": error_dicts,
+            "deal_ids": deal_ids,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        return json.dumps(result, indent=2)
+    finally:
+        if _deal_store_override is None:
+            store.disconnect()
+
+
+@mcp.tool()
+def create_deal_manual(
+    display_name: str,
+    seller_url: str,
+    deal_type: str = "PD",
+    status: str = "draft",
+    media_type: str | None = None,
+    price: float | None = None,
+    impressions: int | None = None,
+    flight_start: str | None = None,
+    flight_end: str | None = None,
+    seller_deal_id: str | None = None,
+    seller_org: str | None = None,
+    seller_domain: str | None = None,
+    seller_type: str | None = None,
+    buyer_org: str | None = None,
+    buyer_id: str | None = None,
+    price_model: str | None = None,
+    fixed_price_cpm: float | None = None,
+    bid_floor_cpm: float | None = None,
+    currency: str = "USD",
+    description: str | None = None,
+    advertiser_id: str | None = None,
+    tags: list[str] | None = None,
+) -> str:
+    """Manually create a single deal entry in the portfolio.
+
+    Validates the input and saves the deal to the deal store with
+    portfolio metadata (import_source=MANUAL).
+
+    Args:
+        display_name: Human-readable name for the deal.
+        seller_url: Seller endpoint URL.
+        deal_type: Deal type (PG, PD, PA, OPEN_AUCTION, UPFRONT, SCATTER).
+        status: Initial status (draft, active, paused).
+        media_type: Media type (DIGITAL, CTV, LINEAR_TV, AUDIO, DOOH).
+        price: Deal price (CPM or flat rate).
+        impressions: Contracted impression volume.
+        flight_start: Flight start date (ISO 8601).
+        flight_end: Flight end date (ISO 8601).
+        seller_deal_id: Seller-assigned deal ID.
+        seller_org: Seller organization name.
+        seller_domain: Seller domain (e.g. espn.com).
+        seller_type: Seller type (PUBLISHER, SSP, DSP, INTERMEDIARY).
+        buyer_org: Buyer organization name.
+        buyer_id: Buyer identifier.
+        price_model: Pricing model (CPM, CPP, FLAT, HYBRID).
+        fixed_price_cpm: Fixed CPM price.
+        bid_floor_cpm: Bid floor CPM for auction deals.
+        currency: Currency code (default USD).
+        description: Free-text deal description.
+        advertiser_id: Advertiser ID for portfolio tracking.
+        tags: Tags for categorization.
+
+    Returns a JSON object with:
+    - success: whether the deal was created
+    - deal_id: the new deal's ID (on success)
+    - errors: validation error messages (on failure)
+    - timestamp: when this operation was performed
+    """
+    # Build the ManualDealEntry for validation
+    try:
+        entry = ManualDealEntry(
+            display_name=display_name,
+            seller_url=seller_url,
+            deal_type=deal_type,
+            status=status,
+            media_type=media_type,
+            price=price,
+            impressions=impressions,
+            flight_start=flight_start,
+            flight_end=flight_end,
+            seller_deal_id=seller_deal_id,
+            seller_org=seller_org,
+            seller_domain=seller_domain,
+            seller_type=seller_type,
+            buyer_org=buyer_org,
+            buyer_id=buyer_id,
+            price_model=price_model,
+            fixed_price_cpm=fixed_price_cpm,
+            bid_floor_cpm=bid_floor_cpm,
+            currency=currency,
+            description=description,
+            advertiser_id=advertiser_id,
+            tags=tags,
+        )
+    except (ValueError, TypeError) as exc:
+        return json.dumps({
+            "success": False,
+            "errors": [str(exc)],
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }, indent=2)
+
+    # Validate and prepare
+    entry_result = create_manual_deal(entry)
+
+    if not entry_result.success:
+        return json.dumps({
+            "success": False,
+            "errors": entry_result.errors,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }, indent=2)
+
+    # Save the deal
+    store = _get_deal_store()
+    try:
+        deal_id = store.save_deal(**entry_result.deal_data)
+
+        # Save portfolio metadata
+        tags_json = json.dumps(entry_result.metadata["tags"]) if entry_result.metadata.get("tags") else None
+        store.save_portfolio_metadata(
+            deal_id=deal_id,
+            import_source=entry_result.metadata["import_source"],
+            import_date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            advertiser_id=entry_result.metadata.get("advertiser_id"),
+            tags=tags_json,
+        )
+
+        return json.dumps({
+            "success": True,
+            "deal_id": deal_id,
+            "display_name": display_name,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }, indent=2)
+    finally:
+        if _deal_store_override is None:
+            store.disconnect()
+
+
+@mcp.tool()
+def get_portfolio_summary(
+    top_sellers_count: int = 5,
+    expiring_within_days: int = 30,
+) -> str:
+    """Get aggregate statistics and summary for the deal portfolio.
+
+    Provides counts by status, deal type, media type, top sellers,
+    total portfolio value, and deals expiring soon.
+
+    Args:
+        top_sellers_count: Number of top sellers to include (default 5).
+        expiring_within_days: Show deals expiring within N days (default 30).
+
+    Returns a JSON object with:
+    - total_deals: total number of deals
+    - total_value: estimated portfolio value (sum of price * impressions / 1000)
+    - by_status: deal counts grouped by status
+    - by_deal_type: deal counts grouped by deal type
+    - by_media_type: deal counts grouped by media type
+    - top_sellers: top sellers by deal count
+    - expiring_deals: deals expiring within the specified window
+    - timestamp: when this summary was generated
+    """
+    store = _get_deal_store()
+    try:
+        deals = store.list_deals(limit=10000)
+
+        total = len(deals)
+
+        if total == 0:
+            return json.dumps({
+                "total_deals": 0,
+                "total_value": 0.0,
+                "by_status": {},
+                "by_deal_type": {},
+                "by_media_type": {},
+                "top_sellers": [],
+                "expiring_deals": [],
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }, indent=2)
+
+        # Count by status
+        status_counts: dict[str, int] = {}
+        for deal in deals:
+            s = deal.get("status", "unknown")
+            status_counts[s] = status_counts.get(s, 0) + 1
+
+        # Count by deal type
+        type_counts: dict[str, int] = {}
+        for deal in deals:
+            dt = deal.get("deal_type", "unknown")
+            type_counts[dt] = type_counts.get(dt, 0) + 1
+
+        # Count by media type
+        media_counts: dict[str, int] = {}
+        for deal in deals:
+            mt = deal.get("media_type") or "N/A"
+            media_counts[mt] = media_counts.get(mt, 0) + 1
+
+        # Top sellers by deal count
+        seller_counts: dict[str, int] = {}
+        for deal in deals:
+            seller = deal.get("seller_org") or deal.get("seller_domain") or "Unknown"
+            seller_counts[seller] = seller_counts.get(seller, 0) + 1
+        top_sellers = sorted(
+            seller_counts.items(), key=lambda x: x[1], reverse=True,
+        )[:top_sellers_count]
+
+        # Total portfolio value: sum of (price * impressions / 1000)
+        total_value = 0.0
+        for deal in deals:
+            p = deal.get("price")
+            imp = deal.get("impressions")
+            if p is not None and imp is not None:
+                total_value += p * imp / 1000.0
+
+        # Deals expiring within N days
+        now = datetime.now(UTC)
+        cutoff = now + timedelta(days=expiring_within_days)
+        cutoff_str = cutoff.strftime("%Y-%m-%d")
+        now_str = now.strftime("%Y-%m-%d")
+
+        expiring_deals = []
+        for deal in deals:
+            if deal.get("status") not in ("active", "draft", "imported"):
+                continue
+            flight_end = deal.get("flight_end")
+            if flight_end and now_str <= flight_end <= cutoff_str:
+                expiring_deals.append({
+                    "deal_id": deal["id"],
+                    "display_name": deal.get("display_name") or deal.get("product_name") or "(unnamed)",
+                    "flight_end": flight_end,
+                })
+
+        result = {
+            "total_deals": total,
+            "total_value": total_value,
+            "by_status": status_counts,
+            "by_deal_type": type_counts,
+            "by_media_type": media_counts,
+            "top_sellers": [
+                {"seller": name, "deal_count": count}
+                for name, count in top_sellers
+            ],
+            "expiring_deals": expiring_deals,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        return json.dumps(result, indent=2)
+    finally:
+        if _deal_store_override is None:
+            store.disconnect()
 
 
 # ---------------------------------------------------------------------------
