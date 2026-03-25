@@ -1,8 +1,8 @@
 # Buyer Agent v2 — Progress
 
-**2 open** | **0 in progress** | **54 closed** | **0 blocked** | 56 total
+**1 open** | **0 in progress** | **48 closed** | **0 blocked** | 49 total
 
-`[████████████████████] 96% (54/56)`
+`[███████████████████░] 98% (48/49)`
 
 ## Phase 1 — Seller Interoperability
 
@@ -65,20 +65,19 @@
 
 | | ID | Task | Priority | Blockers | Done |
 |---|---|---|---|---|---|
-| \[x] | buyer-te6b.1.11 | Extend DealStore schema | P1 | — | 2026-03-18 |
-| \[x] | buyer-te6b.1.12 | Deal library CRUD operations | P1 | — | 2026-03-18 |
-| \[x] | buyer-te6b.1.3 | CSV deal import parser | P1 | — | 2026-03-18 |
-| \[x] | buyer-te6b.1.4 | Manual deal entry | P1 | — | 2026-03-18 |
-| \[x] | buyer-te6b.1.5 | Portfolio inspection tools | P1 | — | 2026-03-18 |
-| \[x] | buyer-te6b.1.2 | L2 agent in buyer hierarchy | P1 | — | 2026-03-18 |
-| \[x] | buyer-te6b.1.7 | Deal library event types | P1 | — | 2026-03-18 |
-| \[x] | buyer-te6b.1.6 | Organize internal deal-booking modules | P1 | — | 2026-03-19 |
-| \[x] | buyer-te6b.1.10 | GET /api/v1/deals/{id}/performance endpoint | P1 | — | 2026-03-19 |
-| \[x] | buyer-te6b.1.8 | GET /api/v1/supply-chain endpoint | P1 | — | 2026-03-19 |
-| \[x] | buyer-te6b.1.9 | POST /api/v1/deals/from-template endpoint | P1 | — | 2026-03-19 |
-| \[x] | buyer-te6b.1.13 | Deal template and supply path template CRUD | P1 | — | 2026-03-19 |
-| \[x] | buyer-te6b.1.1 | Seller API contract | P1 | — | 2026-03-19 |
-| \[ ] | buyer-xa5 | SSP Integration (Magnite, Index Exchange, PubMatic, FreeWheel) | P2 | — | |
+| \[x] | buyer-te6b.1.11 | Extend DealStore schema | P1 | — | 2026-03-25 |
+| \[x] | buyer-te6b.1.12 | Deal library CRUD operations | P1 | — | 2026-03-25 |
+| \[x] | buyer-te6b.1.3 | CSV deal import parser | P1 | — | 2026-03-25 |
+| \[x] | buyer-te6b.1.4 | Manual deal entry | P1 | — | 2026-03-25 |
+| \[x] | buyer-te6b.1.5 | Portfolio inspection tools | P1 | — | 2026-03-25 |
+| \[x] | buyer-te6b.1.7 | Deal library event types | P1 | — | 2026-03-25 |
+| \[x] | buyer-te6b.1.6 | Organize deal-booking modules | P1 | — | 2026-03-25 |
+| \[x] | buyer-te6b.1.1 | Seller API contract | P1 | — | 2026-03-25 |
+| \[x] | buyer-te6b.1.10 | GET /deals/{id}/performance endpoint | P1 | — | 2026-03-25 |
+| \[x] | buyer-te6b.1.8 | GET /supply-chain endpoint | P1 | — | 2026-03-25 |
+| \[x] | buyer-te6b.1.9 | POST /deals/from-template endpoint | P1 | — | 2026-03-25 |
+| \[x] | buyer-te6b.1.13 | Deal template and supply path template CRUD | P1 | — | 2026-03-25 |
+| \[ ] | buyer-xa5 | SSP Integration Planning (PubMatic, Magnite, Index Exchange) | P2 | — | |
 
 ---
-*Last updated: 2026-03-25 — Phase 3 Buyer Agent AI Assistant complete (13/13 beads)*
+*Last updated: 2026-03-25 — Phase 3 complete (13/13), Phase 4 in progress (12/13, buyer-xa5 remaining)*
