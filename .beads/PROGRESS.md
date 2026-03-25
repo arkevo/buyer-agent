@@ -78,7 +78,7 @@
 | \[x] | buyer-te6b.1.9 | POST /api/v1/deals/from-template endpoint | P1 | — | 2026-03-19 |
 | \[x] | buyer-te6b.1.13 | Deal template and supply path template CRUD | P1 | — | 2026-03-19 |
 | \[x] | buyer-te6b.1.1 | Seller API contract | P1 | — | 2026-03-19 |
-| \[ ] | buyer-xa5 | SSP Integration (PubMatic, Magnite, Index Exchange) | P2 | — | |
+| \[ ] | buyer-xa5 | SSP Integration (Magnite, Index Exchange, PubMatic, FreeWheel) | P2 | — | |
 
 ---
 *Last updated: 2026-03-25 — v2 replan applied*
