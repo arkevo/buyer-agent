@@ -2229,7 +2229,7 @@ def create_template(
 @mcp.tool()
 def instantiate_from_template(
     template_id: str | None = None,
-    overrides: str | None = None,
+    overrides: Any = None,
 ) -> str:
     """Create a deal from a deal template with optional overrides.
 
@@ -2238,8 +2238,9 @@ def instantiate_from_template(
 
     Args:
         template_id: Required. The deal template ID to instantiate.
-        overrides: Optional JSON string of field overrides (e.g.
-            '{"price": 25.0, "product_name": "Custom CTV"}').
+        overrides: Optional field overrides. Accepts a JSON string (e.g.
+            '{"price": 25.0, "product_name": "Custom CTV"}') or a pre-parsed
+            dict (MCP may pass dicts directly after JSON parsing).
 
     Returns a JSON object with:
     - deal_id: the newly created deal ID

@@ -120,17 +120,13 @@ CREATE TABLE IF NOT EXISTS deals (
 """
 
 DEALS_INDEXES = [
-    # v1 indexes
+    # v1 indexes only -- v2 indexes require v2 columns and are applied in
+    # migrate_v1_to_v2() to avoid OperationalError on legacy databases.
     "CREATE INDEX IF NOT EXISTS idx_deals_status ON deals(status);",
     "CREATE INDEX IF NOT EXISTS idx_deals_seller_url ON deals(seller_url);",
     "CREATE INDEX IF NOT EXISTS idx_deals_seller_deal_id ON deals(seller_deal_id);",
     "CREATE INDEX IF NOT EXISTS idx_deals_created_at ON deals(created_at);",
     "CREATE INDEX IF NOT EXISTS idx_deals_status_created ON deals(status, created_at);",
-    # v2 indexes
-    "CREATE INDEX IF NOT EXISTS idx_deals_media_type ON deals(media_type);",
-    "CREATE INDEX IF NOT EXISTS idx_deals_deal_type ON deals(deal_type);",
-    "CREATE INDEX IF NOT EXISTS idx_deals_seller_domain ON deals(seller_domain);",
-    "CREATE INDEX IF NOT EXISTS idx_deals_inventory_fingerprint ON deals(inventory_fingerprint);",
 ]
 
 NEGOTIATION_ROUNDS_TABLE = """
