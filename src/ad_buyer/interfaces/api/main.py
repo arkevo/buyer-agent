@@ -59,6 +59,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount MCP SSE server
+from ..mcp_server import mount_mcp
+mount_mcp(app)
+
 # Paths that never require authentication
 _PUBLIC_PATHS = {"/health", "/docs", "/openapi.json", "/redoc"}
 
