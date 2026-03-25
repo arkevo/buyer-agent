@@ -1,8 +1,8 @@
 # Buyer Agent v2 — Progress
 
-**1 open** | **0 in progress** | **48 closed** | **0 blocked** | 49 total
+**0 open** | **0 in progress** | **54 closed** | **0 blocked** | 54 total
 
-`[███████████████████░] 98% (48/49)`
+`[████████████████████] 100% (54/54)`
 
 ## Phase 1 — Seller Interoperability
 
@@ -77,7 +77,12 @@
 | \[x] | buyer-te6b.1.8 | GET /supply-chain endpoint | P1 | — | 2026-03-25 |
 | \[x] | buyer-te6b.1.9 | POST /deals/from-template endpoint | P1 | — | 2026-03-25 |
 | \[x] | buyer-te6b.1.13 | Deal template and supply path template CRUD | P1 | — | 2026-03-25 |
-| \[ ] | buyer-xa5 | SSP Integration Planning (PubMatic, Magnite, Index Exchange) | P2 | — | |
+| \[x] | buyer-xa5 | SSP Integration Planning (PubMatic, Magnite, Index Exchange) | P1 | — | 2026-03-25 |
+| \[x] | buyer-vj3x | SSP Connector base class and interface | P1 | — | 2026-03-25 |
+| \[x] | buyer-udd5 | PubMatic SSP connector for deal import | P1 | — | 2026-03-25 |
+| \[x] | buyer-1ia3 | Magnite SSP connector for deal import | P2 | — | 2026-03-25 |
+| \[x] | buyer-qo6b | Index Exchange SSP connector for deal import | P2 | — | 2026-03-25 |
+| \[x] | buyer-sozw | SSP connector MCP tools (import, list, test) | P1 | — | 2026-03-25 |
 
 ---
-*Last updated: 2026-03-25 — Phase 3 complete (13/13), Phase 4 in progress (12/13, buyer-xa5 remaining)*
+*Last updated: 2026-03-25 — Phase 4 complete (19/19), all phases complete (54/54)*
