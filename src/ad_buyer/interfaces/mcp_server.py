@@ -8,6 +8,8 @@ This is the foundation server that all other MCP tool modules build upon.
 
 Tool categories:
   - Foundation: get_setup_status, health_check, get_config
+  - Setup Wizard: run_setup_wizard, get_wizard_step,
+    complete_wizard_step, skip_wizard_step (buyer-byk)
   - Campaign Management: list_campaigns, get_campaign_status,
     check_pacing, review_budgets (buyer-3w3)
 
@@ -31,6 +33,7 @@ from fastapi import FastAPI
 from mcp.server.fastmcp import FastMCP
 
 from ..config.settings import Settings
+from ..services.setup_wizard import SetupWizard
 from ..storage.campaign_store import CampaignStore
 from ..storage.pacing_store import PacingStore
 
@@ -269,6 +272,157 @@ def get_config() -> str:
         "crew_max_iterations": settings.crew_max_iterations,
     }
     return json.dumps(result, indent=2)
+
+
+# ---------------------------------------------------------------------------
+# Setup Wizard Tools (buyer-byk)
+# ---------------------------------------------------------------------------
+
+# Module-level wizard instance for state persistence across MCP calls.
+_wizard_instance: SetupWizard | None = None
+
+
+def _get_wizard() -> SetupWizard:
+    """Get or create the module-level SetupWizard instance."""
+    global _wizard_instance
+    if _wizard_instance is None:
+        _wizard_instance = SetupWizard()
+    return _wizard_instance
+
+
+def _set_wizard(wizard: SetupWizard | None) -> None:
+    """Set (or clear) the wizard instance for testing."""
+    global _wizard_instance
+    _wizard_instance = wizard
+
+
+@mcp.tool()
+def run_setup_wizard() -> str:
+    """Run the setup wizard and get the current status of all steps.
+
+    Auto-detects completed steps from existing configuration, then
+    returns the full wizard state including all 8 steps, progress
+    percentage, and current phase (developer or business).
+
+    Returns a JSON object with:
+    - steps: list of all 8 wizard steps with status and config
+    - completed: whether all steps are done
+    - progress_pct: percentage of steps completed (0-100)
+    - current_phase: 'developer' or 'business'
+    - timestamp: when this status was generated
+    """
+    wizard = _get_wizard()
+    result = wizard.run_wizard()
+    result["timestamp"] = datetime.now(timezone.utc).isoformat()
+    return json.dumps(result, indent=2)
+
+
+@mcp.tool()
+def get_wizard_step(step_number: int) -> str:
+    """Get detailed information about a specific wizard step.
+
+    Args:
+        step_number: The step number (1-8).
+
+    Returns a JSON object with:
+    - step_number, title, description, phase
+    - config_fields: fields this step configures
+    - defaults: sensible default values
+    - status: not_started, completed, skipped, or auto_detected
+    - config: current configuration (if completed)
+    - error: present only if step_number is invalid
+    """
+    wizard = _get_wizard()
+    try:
+        step = wizard.get_step(step_number)
+        result = step.to_dict()
+        result["timestamp"] = datetime.now(timezone.utc).isoformat()
+        return json.dumps(result, indent=2)
+    except ValueError as exc:
+        return json.dumps(
+            {
+                "error": str(exc),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+            indent=2,
+        )
+
+
+@mcp.tool()
+def complete_wizard_step(step_number: int, config: str = "{}") -> str:
+    """Complete a wizard step with the given configuration.
+
+    Args:
+        step_number: The step number (1-8) to complete.
+        config: JSON string of configuration values for this step.
+            Example: '{"agency_name": "My Agency", "seat_id": "ttd-123"}'
+
+    Returns a JSON object with:
+    - success: whether the step was completed
+    - step_number: the completed step number
+    - status: the new step status
+    - error: present only on failure
+    """
+    wizard = _get_wizard()
+    try:
+        config_dict = json.loads(config)
+        step = wizard.complete_step(step_number, config_dict)
+        return json.dumps(
+            {
+                "success": True,
+                "step_number": step.step_number,
+                "status": step.status.value,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+            indent=2,
+        )
+    except (ValueError, json.JSONDecodeError) as exc:
+        return json.dumps(
+            {
+                "success": False,
+                "error": str(exc),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+            indent=2,
+        )
+
+
+@mcp.tool()
+def skip_wizard_step(step_number: int) -> str:
+    """Skip a wizard step, applying its sensible defaults.
+
+    Step 8 (Review & Launch) cannot be skipped.
+
+    Args:
+        step_number: The step number (1-7) to skip.
+
+    Returns a JSON object with:
+    - success: whether the step was skipped
+    - step_number: the skipped step number
+    - defaults_applied: the default values that were applied
+    - error: present only on failure (e.g., trying to skip step 8)
+    """
+    wizard = _get_wizard()
+    try:
+        step = wizard.skip_step(step_number)
+        return json.dumps(
+            {
+                "success": True,
+                "step_number": step.step_number,
+                "status": step.status.value,
+                "defaults_applied": step.defaults,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+            indent=2,
+        )
+    except ValueError as exc:
+        return json.dumps(
+            {
+                "error": str(exc),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+            indent=2,
+        )
 
 
 # ---------------------------------------------------------------------------
